@@ -20,9 +20,9 @@ import Testing
     }
 
     @Test func ranksPrefixMatchesBeforeOthers() {
-        let all = [item(1, "Unlock Pro"), item(2, "Black Hole"), item(3, "Lock")]
+        let all = [item(1, "Unlock Pro"), item(2, "Clockwork"), item(3, "Lock")]
         // "lock": Lock (prefix) first, then names merely containing it, in original order
-        #expect(ItemSearch.filter(all, query: "lock").map(\.ownerName) == ["Lock", "Unlock Pro", "Black Hole"])
+        #expect(ItemSearch.filter(all, query: "lock").map(\.ownerName) == ["Lock", "Unlock Pro", "Clockwork"])
     }
 
     @Test func nameMatchesBeatTitleMatches() {
