@@ -2,7 +2,7 @@
 
 ## Platform
 
-macOS (native). SwiftUI + AppKit, Swift Package, macOS 13+. Distributed outside the Mac App Store (needs Accessibility, so no sandbox).
+macOS (native). SwiftUI + AppKit, Swift Package, deployment target macOS 13. Distributed outside the Mac App Store (it needs Accessibility and a private API, so no sandbox).
 
 ## Users
 
@@ -14,18 +14,24 @@ Frost: a menu bar organiser. It hides the icons you do not need all the time, sh
 
 ## Capabilities and Constraints
 
-Hide and show items via a divider item; list and rearrange items (Accessibility); second-bar panel (optional Screen Recording); rules, profiles, presenting mode, global search hotkey. No accounts, no telemetry, no network calls except an optional signed update check. Fragile OS-specific code lives in one isolated layer.
+- **Hiding.** macOS 27+: the system menu bar allow-list (private `MenuBarClientCore`), per app, no permission. Earlier macOS: a wide divider that pushes icons off the edge. Hide the apps you choose, or everything except the apps you choose.
+- **Revealing.** Click the chevron or a shortcut; icons return in the bar or in a themed panel below it. Auto-hide timer.
+- **Finding.** Search over every item (hidden or not), clicking through Accessibility.
+- **Layouts.** Profiles, presenting mode, remappable global shortcuts, open at login.
+- **Setup.** First-run walkthrough; one-click chevron placement.
+- No accounts, no telemetry, no network calls. Settings stay on the Mac.
+- Hiding is per app, hides the Focus and camera indicators while on, needs Frost in /Applications on macOS 27, and rests on a private API that a macOS update can remove (Frost checks at launch and falls back to the divider).
 
 ## Brand Commitments
 
-Name: Frost. Open source, transparent about every permission. Same family look as Gazewell (blurred glass, switchable themes), but its own default: icy and cold.
+Name: Frost. Open source, transparent about every permission. Same family look as Gazewell (blurred glass, switchable themes), but its own default: icy and cold. Credits to the projects whose findings it builds on are in `CREDITS.md`.
 
 ## Product Principles
 
-- Invisible when idle: no animation, no CPU, nothing to look at.
-- Never lose an icon: hidden items are always one click or one hotkey away.
+- Invisible when idle: no animation, no polling, no pointer watching.
+- Never lose an icon: hidden items are always one click or one shortcut away, and Frost never hides itself.
 - Say why: every permission is explained before it is requested, and the app works without the optional ones.
-- Fail loudly, not silently: if an item cannot be controlled, say so.
+- Fail loudly, not silently: if hiding fails or an item cannot be controlled, say so.
 - Never touch other apps' icons: the theme styles only Frost's own chrome.
 
 ## Accessibility & Inclusion
