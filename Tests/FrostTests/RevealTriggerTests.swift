@@ -33,3 +33,32 @@ import Testing
         #expect(!HoverZone.keepsRevealed(x: 300, y: 900, boxes: [bar]))
     }
 }
+
+@Suite struct TriggerZoneTests {
+    // Screen 1470 wide, menu bar strip y 923...956 (bottom-left origin), chevron at x 1300...1338.
+    private func boxes(leftmost: Double?) -> [HoverBox] {
+        HoverZone.triggerBoxes(screenMinX: 0, screenMaxX: 1470, barMinY: 923, barMaxY: 956,
+                               chevronMinX: 1300, chevronMaxX: 1338, leftmostVisibleMinX: leftmost)
+    }
+
+    @Test func emptySpaceRunsFromScreenMiddleToTheLeftmostVisibleIcon() {
+        let b = boxes(leftmost: 1100)
+        #expect(HoverZone.keepsRevealed(x: 900, y: 940, boxes: b))           // empty space
+        #expect(!HoverZone.keepsRevealed(x: 400, y: 940, boxes: b))          // app menus side
+        #expect(!HoverZone.keepsRevealed(x: 1200, y: 940, boxes: b))         // over a visible icon
+    }
+
+    @Test func withoutIconPositionsTheZoneEndsAtTheChevron() {
+        let b = boxes(leftmost: nil)
+        #expect(HoverZone.keepsRevealed(x: 1250, y: 940, boxes: b))
+        #expect(HoverZone.keepsRevealed(x: 1320, y: 940, boxes: b))          // the chevron itself
+    }
+
+    @Test func chevronAlwaysTriggersEvenWithIconsBetween() {
+        #expect(HoverZone.keepsRevealed(x: 1320, y: 940, boxes: boxes(leftmost: 1100)))
+    }
+
+    @Test func belowTheBarNeverTriggers() {
+        #expect(!HoverZone.keepsRevealed(x: 900, y: 800, boxes: boxes(leftmost: 1100)))
+    }
+}
