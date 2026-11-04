@@ -44,7 +44,7 @@ Hiding on macOS 27 needs no permission. Frost can also ask for **Accessibility**
 3. Frost is not notarized, so macOS blocks it once: go to System Settings → Privacy & Security and choose **Open Anyway**.
 4. Follow the first-run setup. Accessibility is optional.
 
-Or with Homebrew: `brew tap dhri-yama/tap && brew install --cask frost`.
+Or with Homebrew: `brew tap dhri-yama/tap && brew trust dhri-yama/tap && brew install --cask frost`.
 
 **Updates and permissions.** There is no auto-update yet; download the new DMG. Because releases are not signed with a paid Apple Developer ID, macOS may ask you to allow Accessibility again after an update.
 

@@ -15,7 +15,7 @@ cat >> "$NOTES" <<EOT
 1. Open the DMG and drag Frost to **Applications**, then open it **from Applications** (on macOS 27 hiding only works from there).
 2. The app is not notarized. On first launch go to System Settings, Privacy & Security, and choose **Open Anyway**.
 3. Follow the first-run setup. Accessibility is optional.
-- Homebrew: \`brew tap dhri-yama/tap && brew install --cask frost\`
+- Homebrew: \`brew tap dhri-yama/tap && brew trust dhri-yama/tap && brew install --cask frost\`
 
 ### Notes
 - Frost uses a private macOS API to hide icons on macOS 27. See the README for what that means.
