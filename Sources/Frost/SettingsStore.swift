@@ -8,7 +8,7 @@ final class SettingsStore: ObservableObject {
 
     @Published var themeName: String { didSet { defaults.set(themeName, forKey: "themeName"); Theme.style = Style.named(themeName) } }
     @Published var autoHide: AutoHide { didSet { defaults.set(autoHide.rawValue, forKey: "autoHide"); onAutoHideChange?() } }
-    @Published var revealTrigger: RevealTrigger { didSet { defaults.set(revealTrigger.rawValue, forKey: "revealTrigger") } }
+    @Published var revealTrigger: RevealTrigger { didSet { defaults.set(revealTrigger.rawValue, forKey: "revealTrigger"); onTriggerChange?() } }
     @Published var revealMode: RevealMode { didSet { defaults.set(revealMode.rawValue, forKey: "revealMode") } }
     @Published var shortcutsEnabled: Bool { didSet { defaults.set(shortcutsEnabled, forKey: "shortcutsEnabled") } }
     @Published var hideOnLaunch: Bool { didSet { defaults.set(hideOnLaunch, forKey: "hideOnLaunch") } }
@@ -20,6 +20,7 @@ final class SettingsStore: ObservableObject {
     @Published var launchAtLogin: Bool { didSet { if !syncingLogin { setLoginItem(launchAtLogin) } } }
     @Published var loginError: String?
 
+    var onTriggerChange: (() -> Void)?
     var onHiddenChange: (() -> Void)?
     var onAutoHideChange: (() -> Void)?
     var onPresentingChange: (() -> Void)?

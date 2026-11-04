@@ -6,6 +6,10 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Changed
+- Hover now also works on the empty stretch of menu bar between the app menus and the leftmost visible icon (where hidden icons used to be), not only on the chevron. With Accessibility Frost knows where the leftmost visible icon is and ends the zone there; without it the zone ends at the chevron.
+- The pointer watcher exists only while the reveal setting includes hover, and exits immediately for any pointer position outside the menu bar's height, so ordinary mouse movement costs almost nothing.
+
 ## [0.11.1] - 2026-11-05
 
 ### Fixed

@@ -74,9 +74,17 @@ final class MenuBarController: NSObject {
         store.onPresentingChange = { [weak self] in self?.presentingChanged() }
         store.onHiddenChange = { [weak self] in self?.reapplyRestriction() }
         // Hover is detected by watching the pointer, not with a tracking area: on macOS 27 the chevron is a proxy for a window
-        // the system owns, so mouse-entered events never arrive. Global mouse-moved monitoring needs no permission.
-        _ = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in self?.watchChevron() }
-        _ = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] e in self?.watchChevron(); return e }
+        // the system owns, so mouse-entered events never arrive. The watcher exists only while hover is switched on.
+        store.onTriggerChange = { [weak self] in self?.updateHoverMonitors() }
+        updateHoverMonitors()
+        // The empty stretch of bar left of the leftmost visible icon also reveals, so remember where that icon is.
+        edgeObservation = items.$visible.receive(on: DispatchQueue.main).sink { [weak self] rows in
+            self?.leftmostVisibleMinX = rows.map(\.item).filter { $0.width > 0 }.map(\.minX).min()
+        }
+        for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
+            NSWorkspace.shared.notificationCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in self?.scheduleEdgeRefresh() }
+        }
+        scheduleEdgeRefresh()
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] _ in
             self?.reapplyRestriction()   // a newly launched app must be added to the allow-list or it would be hidden
         }
@@ -121,19 +129,48 @@ final class MenuBarController: NSObject {
 
     private var isRevealed: Bool { store.revealMode == .panel ? panel?.isVisible == true : !state.collapsed }
 
-    private var overChevron = false
+    private var overZone = false
+    private var hoverMonitors: [Any] = []
+    private var leftmostVisibleMinX: Double?
+    private var edgeObservation: AnyCancellable?
+    private var edgeWork: DispatchWorkItem?
 
-    /// Called on every pointer move: works out whether the pointer just entered or left the chevron.
-    private func watchChevron() {
-        guard store.revealTrigger.onHover, !store.presenting, let frame = toggleItem.button?.window?.frame else {
-            overChevron = false; return
-        }
-        let over = frame.insetBy(dx: -2, dy: -2).contains(NSEvent.mouseLocation)
-        if over && !overChevron { chevronEntered() } else if !over && overChevron { hoverWork?.cancel() }
-        overChevron = over
+    private func updateHoverMonitors() {
+        hoverMonitors.forEach(NSEvent.removeMonitor); hoverMonitors = []
+        overZone = false
+        guard store.revealTrigger.onHover else { return }
+        if let g = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved, handler: { [weak self] _ in self?.watchPointer() }) { hoverMonitors.append(g) }
+        if let l = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved, handler: { [weak self] e in self?.watchPointer(); return e }) { hoverMonitors.append(l) }
+        scheduleEdgeRefresh()
     }
 
-    /// The pointer reached the chevron. Reveals after a short dwell so a pass-through does nothing.
+    /// Re-reads where the visible icons are (needs Accessibility), a moment after anything changes. Debounced.
+    private func scheduleEdgeRefresh() {
+        edgeWork?.cancel()
+        guard store.revealTrigger.onHover, AccessibilityScan.trusted else { return }
+        let w = DispatchWorkItem { [weak self] in self?.items.refresh() }
+        edgeWork = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: w)
+    }
+
+    /// Called on every pointer move while hover is on. Does the cheap test first (is the pointer in the menu bar's height at all?)
+    /// so moving the mouse around the rest of the screen costs almost nothing.
+    private func watchPointer() {
+        guard !store.presenting, let w = toggleItem.button?.window else { return }
+        let f = w.frame, p = NSEvent.mouseLocation
+        guard p.y >= f.minY - HoverZone.slack, p.y <= f.maxY + HoverZone.slack else {
+            if overZone { overZone = false; hoverWork?.cancel() }
+            return
+        }
+        let screen = w.screen?.frame ?? f
+        let boxes = HoverZone.triggerBoxes(screenMinX: Double(screen.minX), screenMaxX: Double(screen.maxX), barMinY: Double(f.minY), barMaxY: Double(f.maxY),
+                                           chevronMinX: Double(f.minX), chevronMaxX: Double(f.maxX), leftmostVisibleMinX: leftmostVisibleMinX)
+        let over = HoverZone.keepsRevealed(x: Double(p.x), y: Double(p.y), boxes: boxes)
+        if over && !overZone { chevronEntered() } else if !over && overZone { hoverWork?.cancel() }
+        overZone = over
+    }
+
+    /// The pointer reached the hover zone. Reveals after a short dwell so a pass-through does nothing.
     private func chevronEntered() {
         guard store.revealTrigger.onHover, !store.presenting else { return }
         leaveWork?.cancel(); leaveWork = nil
