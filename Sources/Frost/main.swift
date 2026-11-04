@@ -66,6 +66,15 @@ if CommandLine.arguments.contains("--scan") {
     exit(0)
 }
 
+if CommandLine.arguments.contains("--length-lab") {
+    let app = NSApplication.shared
+    app.setActivationPolicy(.accessory)
+    let lab = LengthLab()
+    lab.start()
+    app.run()
+    exit(0)
+}
+
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate
