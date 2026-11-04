@@ -2,18 +2,34 @@ import SwiftUI
 import FrostCore
 
 enum Pane: String, CaseIterable {
-    case general, about
+    case general, layout, about
     var title: String { rawValue.capitalized }
-    var symbol: String { self == .general ? "gearshape.fill" : "info" }
-    var blurb: String { self == .general ? "Theme, hiding and startup." : "Version and what Frost does with your data." }
+    var symbol: String {
+        switch self { case .general: return "gearshape.fill"; case .layout: return "menubar.rectangle"; case .about: return "info" }
+    }
+    var blurb: String {
+        switch self {
+        case .general: return "Theme, hiding and startup."
+        case .layout: return "Which icons are visible and which are tucked away."
+        case .about: return "Version and what Frost does with your data."
+        }
+    }
 }
 
 /// Selected tab. An ObservableObject rather than @State: the Command Line Tools toolchain has no SwiftUI macro plugin.
-final class PaneModel: ObservableObject { @Published var pane: Pane = .general }
+final class PaneModel: ObservableObject {
+    @Published var pane: Pane
+    init(_ pane: Pane = .general) { self.pane = pane }
+}
 
 struct SettingsView: View {
     @ObservedObject var store: SettingsStore
-    @StateObject private var model = PaneModel()
+    @ObservedObject var items: ItemsModel
+    @StateObject private var model: PaneModel
+    init(store: SettingsStore, items: ItemsModel, initialPane: Pane = .general) {
+        self.store = store; self.items = items
+        _model = StateObject(wrappedValue: PaneModel(initialPane))
+    }
     private var pane: Pane { model.pane }
 
     var body: some View {
@@ -28,6 +44,7 @@ struct SettingsView: View {
                     }
                     switch pane {
                     case .general: general
+                    case .layout: layout
                     case .about: about
                     }
                 }
@@ -38,6 +55,7 @@ struct SettingsView: View {
         .frame(width: 720, height: 600)
         .background { ZStack { if !Theme.snapshot { Glass(material: Theme.style.material) }; Theme.glow }.ignoresSafeArea() }
         .environment(\.colorScheme, Theme.scheme)
+        .onAppear { if !Theme.snapshot { items.refresh() } }
         .id(store.themeName)   // rebuild every surface when the theme changes
     }
 
@@ -98,6 +116,36 @@ struct SettingsView: View {
             }
             Block(title: "Setup") {
                 Note("Hold ⌘ and drag icons in the menu bar to place them left of Frost's divider (|) to hide them, or right of it to keep them visible. Automatic arranging arrives in a later version.")
+            }
+        }
+    }
+
+    private var layout: some View {
+        VStack(alignment: .leading, spacing: 28) {
+            Block(title: "Hidden (\(items.hidden.count))") {
+                if items.hidden.isEmpty {
+                    Note("Nothing is hidden. ⌘-drag icons to the left of Frost's divider (|) to hide them.")
+                } else {
+                    Card { ForEach(Array(items.hidden.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r) } }
+                    Note("These are off-screen while Frost is collapsed. Click the chevron to reveal them.")
+                }
+            }
+            Block(title: "Visible (\(items.visible.count))") {
+                if items.visible.isEmpty && items.hidden.isEmpty {
+                    Note("Frost could not find any items. Newer macOS versions may not list other apps' menu bar items in the window list; an Accessibility-based scan is planned. Run Frost with --scan for details.")
+                }
+                Card { ForEach(Array(items.visible.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r) } }
+            }
+            HStack { Button("Refresh") { items.refresh() }.buttonStyle(ControlButton()); Spacer() }
+            Note("Frost reads the window list to find these items. It needs no permission and never changes other apps' icons. Moving items from here arrives in a later version.")
+        }
+    }
+
+    private func itemRow(_ r: ItemRow) -> some View {
+        Row(title: r.item.ownerName) {
+            Group {
+                if let icon = r.icon { Image(nsImage: icon).resizable().frame(width: 22, height: 22) }
+                else { Image(systemName: "app.dashed").font(.system(size: 16)).foregroundStyle(Theme.textDim) }
             }
         }
     }

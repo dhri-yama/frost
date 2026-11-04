@@ -10,6 +10,8 @@ final class MenuBarController: NSObject {
     private var hideTimer: Timer?
     private let store: SettingsStore
     var openSettings: () -> Void = {}
+    var dividerWindowID: Int { dividerItem.button?.window?.windowNumber ?? -1 }
+    var ownWindowIDs: Set<Int> { Set([dividerItem, toggleItem].compactMap { $0.button?.window?.windowNumber }) }
 
     init(store: SettingsStore) {
         self.store = store
