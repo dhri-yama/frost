@@ -6,6 +6,13 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Added
+- "Reveal icons" setting (General): on click, on hover, or on click or hover. Hovering the chevron reveals the hidden icons after a short pause (works for both the menu bar and the panel), and they hide again half a second after the pointer leaves the menu bar or the panel. Clicking while they are hover-revealed keeps them open and starts the usual hide timer.
+- `RevealTrigger` and `HoverZone` in `FrostCore`, with tests.
+
+### Notes
+- With "On hover" only, clicking the chevron does nothing; the right-click menu and the ⌃⌥H shortcut still work.
+
 ## [0.10.0] - 2026-11-05
 
 ### Added

@@ -18,6 +18,10 @@ final class MenuBarController: NSObject {
     /// True on macOS 27 when the allow-list is available but Frost is not in /Applications (its own icon would vanish).
     let needsInstall: Bool
     private var rehideTimer: Timer?
+    private var hoverWork: DispatchWorkItem?
+    private var leaveWork: DispatchWorkItem?
+    private var revealedByHover = false
+    private var moveMonitors: [Any] = []
     private var panel: PanelWindow?
     private var clickMonitor: Any?
     private var itemsObservation: AnyCancellable?
@@ -66,6 +70,9 @@ final class MenuBarController: NSObject {
         toggleItem.button?.action = #selector(clicked(_:))
         toggleItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         toggleItem.button?.setAccessibilityLabel("Frost: show or hide menu bar items")
+        if let b = toggleItem.button {
+            b.addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil))
+        }
         store.onAutoHideChange = { [weak self] in self?.scheduleAutoHide() }
         store.onPresentingChange = { [weak self] in self?.presentingChanged() }
         store.onHiddenChange = { [weak self] in self?.reapplyRestriction() }
@@ -100,15 +107,87 @@ final class MenuBarController: NSObject {
         let e = NSApp.currentEvent
         if e?.type == .rightMouseUp || e?.modifierFlags.contains(.control) == true { showMenu(); return }
         if store.presenting { return }       // presenting keeps everything hidden
+        guard store.revealTrigger.onClick else { return }
+        if revealedByHover {                 // a click on hover-revealed icons keeps them open (then the usual timer applies)
+            stopPointerWatch(); scheduleAutoHide(); return
+        }
         if store.revealMode == .panel { togglePanel(); return }
         state.toggle()
         apply()
     }
 
+    // MARK: Hover
+
+    private var isRevealed: Bool { store.revealMode == .panel ? panel?.isVisible == true : !state.collapsed }
+
+    /// Tracking-area callback: the pointer reached the chevron. Reveals after a short dwell so a pass-through does nothing.
+    @objc func mouseEntered(with event: NSEvent) {
+        guard store.revealTrigger.onHover, !store.presenting else { return }
+        leaveWork?.cancel(); leaveWork = nil
+        guard !isRevealed else { return }
+        hoverWork?.cancel()
+        let w = DispatchWorkItem { [weak self] in self?.revealByHover() }
+        hoverWork = w
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: w)
+    }
+
+    @objc func mouseExited(with event: NSEvent) { hoverWork?.cancel() }
+
+    private func revealByHover() {
+        guard !isRevealed, !store.presenting else { return }
+        revealedByHover = true               // set first so the auto-hide timer is not started
+        if store.revealMode == .panel { showPanel() } else { state.expand(); apply() }
+        revealedByHover = true               // showPanel/apply may have reset it
+        startPointerWatch()
+    }
+
+    /// While icons are revealed by hover they stay as long as the pointer is in the menu bar (or on the panel), and hide
+    /// half a second after it leaves.
+    private func startPointerWatch() {
+        moveMonitors.forEach(NSEvent.removeMonitor); moveMonitors = []
+        if let g = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved, handler: { [weak self] _ in self?.pointerMoved() }) { moveMonitors.append(g) }
+        if let l = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved, handler: { [weak self] e in self?.pointerMoved(); return e }) { moveMonitors.append(l) }
+    }
+
+    private func stopPointerWatch() {
+        moveMonitors.forEach(NSEvent.removeMonitor); moveMonitors = []
+        leaveWork?.cancel(); leaveWork = nil
+        hoverWork?.cancel()
+        revealedByHover = false
+    }
+
+    private func pointerMoved() {
+        guard revealedByHover else { return }
+        let p = NSEvent.mouseLocation
+        guard let screen = NSScreen.screens.first(where: { NSMouseInRect(p, $0.frame, false) }) else { return }
+        let barHeight = max(screen.frame.maxY - screen.visibleFrame.maxY, 24)
+        var boxes = [HoverBox(minX: Double(screen.frame.minX), minY: Double(screen.frame.maxY - barHeight),
+                              maxX: Double(screen.frame.maxX), maxY: Double(screen.frame.maxY))]
+        if let w = panel, w.isVisible {
+            boxes.append(HoverBox(minX: Double(w.frame.minX), minY: Double(w.frame.minY), maxX: Double(w.frame.maxX), maxY: Double(w.frame.maxY)))
+        }
+        if HoverZone.keepsRevealed(x: Double(p.x), y: Double(p.y), boxes: boxes) {
+            leaveWork?.cancel(); leaveWork = nil
+        } else if leaveWork == nil {
+            let w = DispatchWorkItem { [weak self] in self?.hideAfterHover() }
+            leaveWork = w
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: w)
+        }
+    }
+
+    private func hideAfterHover() {
+        guard revealedByHover else { return }
+        if store.revealMode == .panel { closePanel() } else { state.collapse(); apply() }
+        stopPointerWatch()
+    }
+
     // MARK: Panel
 
     private func togglePanel() {
-        if panel?.isVisible == true { closePanel(); return }
+        if panel?.isVisible == true { closePanel() } else { showPanel() }
+    }
+
+    private func showPanel() {
         state.collapse(); apply()          // in panel mode the bar itself stays collapsed
         items.refresh()
         let view = PanelView(items: items) { [weak self] row in
@@ -128,6 +207,7 @@ final class MenuBarController: NSObject {
     }
 
     private func closePanel() {
+        stopPointerWatch()
         panel?.orderOut(nil)
         if let m = clickMonitor { NSEvent.removeMonitor(m); clickMonitor = nil }
     }
@@ -155,6 +235,7 @@ final class MenuBarController: NSObject {
     }
 
     private func apply() {
+        if store.revealMode == .inline && state.collapsed { stopPointerWatch() }
         if method == .allowList {
             dividerItem.isVisible = false          // the divider is only for the width method
             reapplyRestriction()
@@ -178,7 +259,7 @@ final class MenuBarController: NSObject {
 
     private func scheduleAutoHide() {
         hideTimer?.invalidate()
-        guard !state.collapsed, let s = store.autoHide.seconds else { return }
+        guard !state.collapsed, !revealedByHover, let s = store.autoHide.seconds else { return }
         hideTimer = Timer.scheduledTimer(withTimeInterval: s, repeats: false) { [weak self] _ in
             self?.state.collapse()
             self?.apply()
