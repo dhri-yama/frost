@@ -56,3 +56,12 @@ import Foundation
         #expect(decoded.first?.hiddenBundleIDs == [] && decoded.first?.hiddenOwners == ["A"])
     }
 }
+
+@Suite struct HideMethodTests {
+    @Test func picksByOSVersionAndAvailability() {
+        #expect(HideMethod.choose(osMajorVersion: 26, allowListAvailable: true) == .divider)
+        #expect(HideMethod.choose(osMajorVersion: 27, allowListAvailable: true) == .allowList)
+        #expect(HideMethod.choose(osMajorVersion: 27, allowListAvailable: false) == .divider)
+        #expect(HideMethod.choose(osMajorVersion: 30, allowListAvailable: true) == .allowList)
+    }
+}

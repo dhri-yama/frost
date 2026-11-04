@@ -23,3 +23,16 @@ public struct AllowList {
         allowed = []
     }
 }
+
+/// How Frost hides other apps' icons on this system.
+public enum HideMethod: Equatable {
+    /// A wide divider pushes icons left of it off the screen. Works up to macOS 26.
+    case divider
+    /// The system allow-list (private MenuBarClientCore). The only method that hides on macOS 27 and later.
+    case allowList
+
+    /// The allow-list only exists on macOS 27+, and only when the private framework loaded.
+    public static func choose(osMajorVersion: Int, allowListAvailable: Bool) -> HideMethod {
+        osMajorVersion >= 27 && allowListAvailable ? .allowList : .divider
+    }
+}
