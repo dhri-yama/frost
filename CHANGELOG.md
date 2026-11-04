@@ -6,6 +6,8 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-11-05
+
 ### Fixed
 - Hover reveal did nothing on macOS 27: it relied on a tracking area on the chevron, but there the chevron is a proxy for a system-owned window and never receives mouse-entered events. Hover is now detected by watching the pointer position (a global mouse-moved monitor, which needs no permission) against the chevron's frame.
 
