@@ -242,7 +242,7 @@ struct SettingsView: View {
             HStack(spacing: 12) {
                 if let icon = r.icon { Image(nsImage: icon).resizable().frame(width: 22, height: 22) }
                 else { Image(systemName: "app.dashed").font(.system(size: 16)).foregroundStyle(Theme.textDim) }
-                if items.method == .allowList ? r.item.bundleID != nil : items.source == .accessibility {
+                if items.method == .allowList ? (r.item.bundleID != nil && !r.item.isSystemItem) : items.source == .accessibility {
                     Button(hidden ? "Show" : "Hide") { toggle(r, hidden: hidden) }
                         .buttonStyle(ControlButton())
                         .frame(width: 64)

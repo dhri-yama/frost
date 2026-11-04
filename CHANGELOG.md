@@ -6,6 +6,14 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Fixed
+- Apple's own items (Control Center, Clock, Wi-Fi and so on) no longer get a Hide button in Layout on macOS 27: the system always keeps them visible, so the button did nothing.
+- Overlapping refreshes of the item list can no longer finish out of order and show stale results.
+
+### Changed
+- Product brief, design direction and plan now describe what was actually built (allow-list hiding, no hover, onboarding, current status and what is left).
+- README has screenshots, rendered by `Frost --snapshot`.
+
 ## [0.15.0] - 2026-11-05
 
 ### Added

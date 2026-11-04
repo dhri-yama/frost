@@ -37,9 +37,14 @@ final class ItemsModel: ObservableObject {
     var dividerWindowID: () -> Int = { -1 }
     var ownWindowIDs: () -> Set<Int> = { [] }
 
+    /// Bumped on every refresh so a slow, older scan cannot overwrite the result of a newer one.
+    private var refreshToken = 0
+
     func refresh() {
         trusted = AccessibilityScan.trusted
         scanning = true
+        refreshToken += 1
+        let token = refreshToken
         let dividerX = dividerMinX(), dividerID = dividerWindowID(), own = ownWindowIDs()
         let method = self.method, hiddenIDs = hiddenBundleIDs()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -63,7 +68,7 @@ final class ItemsModel: ObservableObject {
                 result = (g.visible, g.hidden, .windowList)
             }
             DispatchQueue.main.async {
-                guard let self else { return }
+                guard let self, token == self.refreshToken else { return }
                 self.visible = result.visible.map(self.row); self.hidden = result.hidden.map(self.row)
                 self.source = result.source; self.scanning = false
             }

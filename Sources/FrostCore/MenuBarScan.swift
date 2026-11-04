@@ -12,6 +12,8 @@ public struct MenuBarItem: Equatable, Identifiable {
     public let bundleID: String?
 
     public var id: Int { windowID }
+    /// Apple's own items (Control Center, Clock, Wi-Fi...). macOS 27 always keeps these visible, so hiding them is not possible.
+    public var isSystemItem: Bool { bundleID?.hasPrefix("com.apple.") == true }
     public var maxX: Double { minX + width }
 
     public init(windowID: Int, pid: Int, ownerName: String, minX: Double, width: Double, title: String? = nil, bundleID: String? = nil) {

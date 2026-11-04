@@ -58,3 +58,12 @@ private func win(_ id: Int, _ owner: String, x: Double, w: Double = 24, layer: I
         #expect(MenuBarItem(windowID: 1, pid: 1, ownerName: "A", minX: 0, width: 1).title == nil)
     }
 }
+
+@Suite struct SystemItemTests {
+    @Test func appleAppsAreSystemItems() {
+        let apple = MenuBarItem(windowID: 1, pid: 1, ownerName: "Control Center", minX: 0, width: 24, bundleID: "com.apple.controlcenter")
+        let other = MenuBarItem(windowID: 2, pid: 2, ownerName: "Dropbox", minX: 0, width: 24, bundleID: "com.getdropbox.dropbox")
+        let unknown = MenuBarItem(windowID: 3, pid: 3, ownerName: "?", minX: 0, width: 24)
+        #expect(apple.isSystemItem && !other.isSystemItem && !unknown.isSystemItem)
+    }
+}
