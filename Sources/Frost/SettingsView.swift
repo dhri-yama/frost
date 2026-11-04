@@ -113,9 +113,6 @@ struct SettingsView: View {
             }
             Block(title: "Hiding") {
                 Card {
-                    MenuRow(title: "Reveal icons", subtitle: "What makes hidden icons appear. Hover waits a moment, and they hide again when the pointer leaves the menu bar.",
-                            selection: $store.revealTrigger, options: RevealTrigger.allCases.map { ($0, $0.label) })
-                    Sep()
                     MenuRow(title: "Show hidden items", subtitle: "A panel needs Accessibility access to click the items for you.",
                             selection: $store.revealMode, options: RevealMode.allCases.map { ($0, $0.label) })
                     Sep()

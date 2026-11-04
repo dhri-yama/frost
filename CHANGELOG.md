@@ -6,6 +6,9 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Removed
+- Hover reveal and the "Reveal icons" setting. Hidden icons now appear on click only (or with ⌃⌥H, or from search). Frost no longer watches the pointer at all: the global mouse-moved monitors, the hover zone and the supporting `RevealTrigger` and `HoverZone` code and tests are gone.
+
 ## [0.11.2] - 2026-11-05
 
 ### Changed
