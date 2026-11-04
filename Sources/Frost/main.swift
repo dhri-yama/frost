@@ -19,7 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         items.toggleMinX = { [unowned self] in menuBar.toggleMinX }
         items.barY = { [unowned self] in menuBar.barY }
         items.ownWindowIDs = { [unowned self] in menuBar.ownWindowIDs }
-        search = SearchController(items: items)
+        items.method = menuBar.method
+        items.needsInstall = menuBar.needsInstall
+        items.hiddenBundleIDs = { [unowned self] in store.hiddenBundleIDs }
+        search = SearchController(items: items) { [unowned self] row in menuBar.activate(row) }
         hotkeys.register(key: kVK_ANSI_H) { [unowned self] in if store.shortcutsEnabled { menuBar.toggleFromShortcut() } }
         hotkeys.register(key: kVK_Space) { [unowned self] in if store.shortcutsEnabled { search.toggle() } }
         hotkeys.register(key: kVK_ANSI_P) { [unowned self] in if store.shortcutsEnabled { store.presenting.toggle() } }
@@ -27,6 +30,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBar.openSettings = { [weak self] in self?.showSettings() }
         if CommandLine.arguments.contains("--settings") { showSettings() }
     }
+
+    func applicationWillTerminate(_ notification: Notification) { menuBar.release() }
 
     func showSettings() {
         if settingsWindow == nil {
@@ -62,6 +67,9 @@ if CommandLine.arguments.contains("--scan") {
     // refresh() publishes on the main queue, so spin it until the scan finishes.
     while done.wait(timeout: .now() + .milliseconds(20)) == .timedOut { RunLoop.main.run(until: Date().addingTimeInterval(0.02)) }
     print("Frost \(AppInfo.version): Accessibility \(items.trusted ? "granted" : "NOT granted (this terminal needs it)"); \(items.all.count) item(s) via \(items.source == .accessibility ? "Accessibility" : "the window list")")
+    let probe = MenuBarRestriction.probe()
+    let inApps = Bundle.main.bundlePath.hasPrefix("/Applications/")
+    print("System allow-list: \(probe ? "available" : "NOT available"); running from /Applications: \(inApps ? "yes" : "no")")
     for r in items.all { print(String(format: "%8.0f  %@%@", r.item.minX, r.item.ownerName, r.item.title.map { " – \($0)" } ?? "")) }
     exit(0)
 }

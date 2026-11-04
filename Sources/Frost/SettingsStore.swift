@@ -13,10 +13,13 @@ final class SettingsStore: ObservableObject {
     @Published var hideOnLaunch: Bool { didSet { defaults.set(hideOnLaunch, forKey: "hideOnLaunch") } }
     @Published var profiles: [Profile] { didSet { defaults.set(try? JSONEncoder().encode(profiles), forKey: "profiles") } }
     /// Presenting mode keeps everything hidden until switched off. Deliberately not saved: it never survives a relaunch.
+    /// Apps whose menu bar items are hidden (macOS 27 allow-list). Stored by bundle identifier.
+    @Published var hiddenBundleIDs: Set<String> { didSet { defaults.set(hiddenBundleIDs.sorted(), forKey: "hiddenBundleIDs"); onHiddenChange?() } }
     @Published var presenting = false { didSet { onPresentingChange?() } }
     @Published var launchAtLogin: Bool { didSet { if !syncingLogin { setLoginItem(launchAtLogin) } } }
     @Published var loginError: String?
 
+    var onHiddenChange: (() -> Void)?
     var onAutoHideChange: (() -> Void)?
     var onPresentingChange: (() -> Void)?
     private var syncingLogin = false
@@ -29,9 +32,14 @@ final class SettingsStore: ObservableObject {
         revealMode = RevealMode(rawValue: defaults.object(forKey: "revealMode") as? Int ?? 0) ?? .inline
         shortcutsEnabled = defaults.object(forKey: "shortcutsEnabled") as? Bool ?? true
         hideOnLaunch = defaults.object(forKey: "hideOnLaunch") as? Bool ?? true
+        hiddenBundleIDs = Set(defaults.stringArray(forKey: "hiddenBundleIDs") ?? [])
         profiles = defaults.data(forKey: "profiles").flatMap { try? JSONDecoder().decode([Profile].self, from: $0) } ?? []
         launchAtLogin = SMAppService.mainApp.status == .enabled
         Theme.style = Style.named(name)
+    }
+
+    func toggleHidden(_ bundleID: String) {
+        if hiddenBundleIDs.contains(bundleID) { hiddenBundleIDs.remove(bundleID) } else { hiddenBundleIDs.insert(bundleID) }
     }
 
     private func setLoginItem(_ on: Bool) {

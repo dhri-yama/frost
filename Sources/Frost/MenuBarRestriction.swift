@@ -17,7 +17,6 @@ enum RestrictionError: LocalizedError {
 ///
 /// Facts this relies on (found by the Ellipsis project; see CREDITS.md): the list holds bundle identifiers of apps that stay
 /// visible; the restriction ends when the process exits; and the app must be inside /Applications for its own icon to match.
-@MainActor
 final class MenuBarRestriction {
     private static let path = "/System/Library/PrivateFrameworks/MenuBarClientCore.framework/MenuBarClientCore"
     /// System items are given as integer codes (0–6 are the public AEMenuBarItem constants, 8 is Control Center). A generous

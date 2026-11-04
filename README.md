@@ -14,8 +14,12 @@ Open source, no accounts, no telemetry, no network calls. Settings stay on your 
 - **Themes:** Frost, Midnight, Mono and Paper. A theme only styles Frost's own windows, never other apps' icons.
 - Open at login, global shortcuts you can switch off.
 
+## How hiding works
+- **macOS 26 and earlier:** a divider in the menu bar grows wide and pushes the icons left of it off the edge.
+- **macOS 27:** that no longer works, so Frost uses the system menu bar allow-list (a private Apple API, loaded at run time) to hide whole apps. It hides per app rather than per icon, hides the Focus and camera indicators while on, and **requires Frost to run from /Applications** (`./install.sh` does that). If a macOS update removes the API, Frost falls back to the divider and says so in About.
+
 ## Permissions
-Frost asks for **Accessibility** and explains why before you grant it: it needs to read which icons are in the menu bar, click them for you and move them. It cannot see your screen or what you type. Without it Frost still hides and shows items, but cannot list, search or rearrange them.
+Hiding on macOS 27 needs no permission. Frost can also ask for **Accessibility**, and explains why before you grant it: it lets Frost list only apps that really have a menu bar item, click them for you and (before macOS 27) move them. It cannot see your screen or what you type. Without it Frost still hides and shows apps, but lists every running app and cannot click items for you.
 
 ## Build
 Requires macOS 13+ and the Swift toolchain (Command Line Tools are enough).

@@ -12,6 +12,12 @@ final class MenuBarController: NSObject {
     private var hideTimer: Timer?
     private let store: SettingsStore
     private let items: ItemsModel
+    private let restriction: MenuBarRestriction?
+    /// How hiding works on this Mac. The allow-list needs macOS 27, the private framework, and Frost inside /Applications.
+    let method: HideMethod
+    /// True on macOS 27 when the allow-list is available but Frost is not in /Applications (its own icon would vanish).
+    let needsInstall: Bool
+    private var rehideTimer: Timer?
     private var panel: PanelWindow?
     private var clickMonitor: Any?
     private var itemsObservation: AnyCancellable?
@@ -47,6 +53,12 @@ final class MenuBarController: NSObject {
     init(store: SettingsStore, items: ItemsModel) {
         self.store = store
         self.items = items
+        let r = try? MenuBarRestriction()
+        let inApplications = Bundle.main.bundlePath.hasPrefix("/Applications/")
+        let os = ProcessInfo.processInfo.operatingSystemVersion.majorVersion
+        restriction = r
+        method = HideMethod.choose(osMajorVersion: os, allowListAvailable: r != nil && inApplications)
+        needsInstall = os >= 27 && r != nil && !inApplications
         super.init()
         toggleItem.autosaveName = "frost.toggle"
         dividerItem.autosaveName = "frost.divider"
@@ -56,8 +68,32 @@ final class MenuBarController: NSObject {
         toggleItem.button?.setAccessibilityLabel("Frost: show or hide menu bar items")
         store.onAutoHideChange = { [weak self] in self?.scheduleAutoHide() }
         store.onPresentingChange = { [weak self] in self?.presentingChanged() }
+        store.onHiddenChange = { [weak self] in self?.reapplyRestriction() }
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.reapplyRestriction()   // a newly launched app must be added to the allow-list or it would be hidden
+        }
         if !store.hideOnLaunch { state.expand() }
         apply()
+    }
+
+    // MARK: Allow-list (macOS 27)
+
+    /// Collapsed means the allow-list is active; expanded means it is lifted. A no-op for the divider method.
+    private func reapplyRestriction() {
+        guard method == .allowList, let restriction else { return }
+        if state.collapsed { restriction.apply(hidden: store.hiddenBundleIDs) } else { restriction.release() }
+    }
+
+    /// Clicks an item. With the allow-list a hidden app's icon is not in the menu bar, so it is let back for a moment first.
+    func activate(_ row: ItemRow) {
+        guard method == .allowList, state.collapsed, let bundle = row.item.bundleID, store.hiddenBundleIDs.contains(bundle) else {
+            AccessibilityScan.press(id: row.id); return
+        }
+        restriction?.apply(hidden: store.hiddenBundleIDs.subtracting([bundle]))
+        // Give the system a moment to lay the icon out; then click it (needs Accessibility), else the user clicks it.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { AccessibilityScan.press(id: row.id) }
+        rehideTimer?.invalidate()
+        rehideTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in self?.reapplyRestriction() }
     }
 
     @objc private func clicked(_ sender: NSStatusBarButton) {
@@ -78,7 +114,7 @@ final class MenuBarController: NSObject {
         let view = PanelView(items: items) { [weak self] row in
             self?.closePanel()
             // Let the panel go first so the item's own menu opens in front.
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { AccessibilityScan.press(id: row.id) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { self?.activate(row) }
         }
         let host = NSHostingView(rootView: view)
         let w = panel ?? PanelWindow(content: host)
@@ -119,15 +155,25 @@ final class MenuBarController: NSObject {
     }
 
     private func apply() {
+        if method == .allowList {
+            dividerItem.isVisible = false          // the divider is only for the width method
+            reapplyRestriction()
+        } else {
+            dividerItem.isVisible = true
+            applyDivider()
+        }
+        let name = store.presenting ? "eye.slash" : (state.collapsed ? "chevron.left" : "chevron.right")
+        toggleItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: state.collapsed ? "Show hidden items" : "Hide items")
+        scheduleAutoHide()
+    }
+
+    private func applyDivider() {
         dividerItem.length = state.length
         if let b = dividerItem.button {
             // While collapsed the divider is off-screen wide; draw nothing. While expanded it is a thin separator.
             b.image = state.collapsed ? nil : NSImage(systemSymbolName: "line.diagonal", accessibilityDescription: "Frost divider")
             b.alphaValue = 0.5
         }
-        let name = store.presenting ? "eye.slash" : (state.collapsed ? "chevron.left" : "chevron.right")
-        toggleItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: state.collapsed ? "Show hidden items" : "Hide items")
-        scheduleAutoHide()
     }
 
     private func scheduleAutoHide() {
@@ -154,6 +200,8 @@ final class MenuBarController: NSObject {
 
     /// Same as clicking the toggle; used by the global shortcut.
     func toggleFromShortcut() { toggleFromMenu() }
+
+    func release() { restriction?.release() }
 
     private func presentingChanged() {
         if store.presenting { closePanel(); state.collapse() }

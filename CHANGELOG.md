@@ -6,6 +6,21 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Added
+- macOS 27 support: Frost hides apps through the system menu bar allow-list (private `MenuBarClientCore` framework, loaded at run time), because the wide-divider trick no longer moves other apps' icons on macOS 27. No permission is needed to hide. `MenuBarRestriction`, `AllowList` and `HideMethod` (with tests); credit to the Ellipsis project in `CREDITS.md`.
+- Hidden apps are stored by bundle identifier. The Layout pane lists apps with a Hide/Show button each; profiles save and apply the hidden set (older profiles still load). Without Accessibility the pane lists running apps instead.
+- Clicking a hidden app in the panel or in search lets it back for ten seconds, then clicks it.
+- Frost must run from /Applications for the allow-list; Layout says so when it does not, and Frost falls back to the divider instead of hiding its own icon. `install.sh` builds and installs it there.
+- `--scan` also reports whether the allow-list is available.
+- `--length-lab` diagnostic that steps the divider through widths.
+
+### Changed
+- The divider is used only before macOS 27 (or if the private framework is missing). About shows which method is in use.
+
+### Known issues
+- With the allow-list, hiding is per app (an app with two items hides both), and the Focus and camera/microphone indicators are hidden while it is on.
+- A macOS update can rename or remove the private classes; Frost checks for them at launch and falls back to the divider.
+
 ## [0.9.0] - 2026-11-05
 
 ### Added

@@ -9,7 +9,7 @@ struct ItemRow: Identifiable {
     var id: Int { item.id }
 }
 
-enum ScanSource { case accessibility, windowList }
+enum ScanSource { case accessibility, windowList, runningApps }
 
 /// Lists other apps' menu bar items for the Layout pane. Prefers the Accessibility scan; without the permission
 /// (or if it finds nothing) it falls back to the window list, which needs no permission.
@@ -19,6 +19,10 @@ final class ItemsModel: ObservableObject {
     @Published var trusted = AccessibilityScan.trusted
     @Published var source: ScanSource = .windowList
     @Published var scanning = false
+    /// How hiding works here, and whether Frost must be moved to /Applications first. Set by the app delegate.
+    @Published var method: HideMethod = .divider
+    @Published var needsInstall = false
+    var hiddenBundleIDs: () -> Set<String> = { [] }
     @Published var moving = false
     @Published var moveFailed = false
     var prepareForMove: () -> Void = {}
@@ -35,10 +39,20 @@ final class ItemsModel: ObservableObject {
         trusted = AccessibilityScan.trusted
         scanning = true
         let dividerX = dividerMinX(), dividerID = dividerWindowID(), own = ownWindowIDs()
+        let method = self.method, hiddenIDs = hiddenBundleIDs()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let ax = AccessibilityScan.scan()
-            let result: (visible: [MenuBarItem], hidden: [MenuBarItem], source: ScanSource)
-            if !ax.isEmpty {
+            var result: (visible: [MenuBarItem], hidden: [MenuBarItem], source: ScanSource)
+            if method == .allowList {
+                // Hiding is per app, so which side an item is on comes from Frost's own list, not from its position.
+                var found = ax, source = ScanSource.accessibility
+                if found.isEmpty { found = Self.runningApps(); source = .runningApps }
+                let g = MenuBarScan.group(found, hiddenBundleIDs: hiddenIDs, ownPID: Int(getpid()))
+                // Hidden apps may have no item to scan while hidden; keep them listed so they can be shown again.
+                let known = Set(g.hidden.compactMap(\.bundleID))
+                let missing = Self.runningApps().filter { m in m.bundleID.map { hiddenIDs.contains($0) && !known.contains($0) } ?? false }
+                result = (g.visible, g.hidden + missing, source)
+            } else if !ax.isEmpty {
                 let g = MenuBarScan.group(ax, dividerMinX: dividerX, ownPID: Int(getpid()))
                 result = (g.visible, g.hidden, .accessibility)
             } else {
@@ -52,6 +66,16 @@ final class ItemsModel: ObservableObject {
                 self.source = result.source; self.scanning = false
             }
         }
+    }
+
+    /// Running apps that could own a menu bar item, for when Accessibility cannot list real items. Apple background
+    /// agents are left out. Ids are `pid * 1000`.
+    private static func runningApps() -> [MenuBarItem] {
+        NSWorkspace.shared.runningApplications
+            .filter { $0.activationPolicy != .prohibited && $0.bundleIdentifier != nil && !($0.bundleIdentifier ?? "").hasPrefix("com.apple.") }
+            .map { MenuBarItem(windowID: Int($0.processIdentifier) * 1000, pid: Int($0.processIdentifier), ownerName: $0.localizedName ?? "Unknown",
+                               minX: 0, width: 0, bundleID: $0.bundleIdentifier) }
+            .sorted { $0.ownerName.localizedCaseInsensitiveCompare($1.ownerName) == .orderedAscending }
     }
 
     /// Moves an item to the hidden or visible side. Expands the bar, drags, then restores it and rescans.

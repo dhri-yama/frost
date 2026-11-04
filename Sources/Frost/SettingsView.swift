@@ -134,21 +134,30 @@ struct SettingsView: View {
 
     private var layout: some View {
         VStack(alignment: .leading, spacing: 28) {
+            if items.needsInstall {
+                Block(title: "Install") {
+                    Row(title: "Move Frost to Applications",
+                        subtitle: "On macOS 27 hiding only works when Frost runs from the Applications folder. Until then Frost cannot hide anything.") { EmptyView() }
+                    Note("Quit Frost, copy Frost.app into /Applications (or run ./install.sh from the source folder), and open it from there.")
+                }
+            }
             if !items.trusted {
-                Block(title: "Accessibility") {
+                Block(title: items.method == .allowList ? "Accessibility (optional)" : "Accessibility") {
                     Row(title: "Allow Accessibility access",
-                        subtitle: "Lets Frost read which icons are in the menu bar so it can list and later arrange them. It cannot see your screen or what you type.") {
+                        subtitle: items.method == .allowList
+                            ? "Not needed to hide apps. It lets Frost list only apps that really have a menu bar item and click them for you. It cannot see your screen or what you type."
+                            : "Lets Frost read which icons are in the menu bar so it can list and later arrange them. It cannot see your screen or what you type.") {
                         HStack(spacing: 8) {
                             Button("Allow") { AccessibilityScan.requestTrust() }.buttonStyle(ControlButton(primary: true))
                             Button("Open Settings") { AccessibilityScan.openSettings() }.buttonStyle(ControlButton())
                         }
                     }
-                    Note("Without it Frost falls back to a less complete scan. After allowing it, press Refresh.")
+                    Note(items.method == .allowList ? "Without it Frost lists every running app instead. After allowing it, press Refresh." : "Without it Frost falls back to a less complete scan. After allowing it, press Refresh.")
                 }
             }
             Block(title: "Hidden (\(items.hidden.count))") {
                 if items.hidden.isEmpty {
-                    Note("Nothing is hidden. ⌘-drag icons to the left of Frost's divider (|) to hide them.")
+                    Note(items.method == .allowList ? "Nothing is hidden. Press Hide on an app below." : "Nothing is hidden. ⌘-drag icons to the left of Frost's divider (|) to hide them.")
                 } else {
                     Card { ForEach(Array(items.hidden.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r, hidden: true) } }
                     Note("These are off-screen while Frost is collapsed. Click the chevron to reveal them.")
@@ -165,7 +174,7 @@ struct SettingsView: View {
                 if items.scanning { Text("Scanning…").font(.system(size: 12)).foregroundStyle(Theme.textDim) }
                 Spacer()
             }
-            Note("Found using \(items.source == .accessibility ? "Accessibility" : "the window list"). Frost never changes other apps' icons, only where they sit.")
+            Note("Found using \(items.source == .accessibility ? "Accessibility" : (items.source == .runningApps ? "the list of running apps" : "the window list")). Frost never changes other apps' icons, only whether they show.")
             if items.moving { Note("Moving the icon… keep the mouse still for a moment.") }
             if items.moveFailed { Note("That item could not be moved. Some system items, like the clock, cannot be rearranged. Try ⌘-dragging it by hand.") }
         }
@@ -176,14 +185,24 @@ struct SettingsView: View {
             HStack(spacing: 12) {
                 if let icon = r.icon { Image(nsImage: icon).resizable().frame(width: 22, height: 22) }
                 else { Image(systemName: "app.dashed").font(.system(size: 16)).foregroundStyle(Theme.textDim) }
-                if items.source == .accessibility {
-                    Button(hidden ? "Show" : "Hide") { items.move(r, toHidden: !hidden) }
+                if items.method == .allowList ? r.item.bundleID != nil : items.source == .accessibility {
+                    Button(hidden ? "Show" : "Hide") { toggle(r, hidden: hidden) }
                         .buttonStyle(ControlButton())
                         .frame(width: 64)
                         .disabled(items.moving).opacity(items.moving ? 0.4 : 1)
                         .accessibilityLabel("\(hidden ? "Show" : "Hide") \(r.item.ownerName)")
                 }
             }
+        }
+    }
+
+    /// With the allow-list, hiding is a setting on the app; with the divider, it is a drag across it.
+    private func toggle(_ r: ItemRow, hidden: Bool) {
+        if items.method == .allowList, let id = r.item.bundleID {
+            store.toggleHidden(id)
+            items.refresh()
+        } else {
+            items.move(r, toHidden: !hidden)
         }
     }
 
@@ -198,14 +217,14 @@ struct SettingsView: View {
                             if i > 0 { Sep() }
                             Row(title: p.name, subtitle: p.hiddenOwners.isEmpty ? "Nothing hidden" : "Hides \(p.hiddenOwners.joined(separator: ", "))") {
                                 HStack(spacing: 8) {
-                                    Button("Apply") { items.apply(p) }.buttonStyle(ControlButton(primary: true))
-                                        .disabled(items.moving || items.source != .accessibility).opacity(items.moving || items.source != .accessibility ? 0.4 : 1)
+                                    Button("Apply") { applyProfile(p) }.buttonStyle(ControlButton(primary: true))
+                                        .disabled(!canApply).opacity(canApply ? 1 : 0.4)
                                     Button("Delete") { store.profiles.removeAll { $0.id == p.id } }.buttonStyle(ControlButton())
                                 }
                             }
                         }
                     }
-                    if items.source != .accessibility { Note("Applying a layout needs Accessibility access. Allow it in the Layout tab.") }
+                    if !canApply { Note("Applying a layout needs Accessibility access. Allow it in the Layout tab.") }
                 }
             }
             Block(title: "Save current layout") {
@@ -220,7 +239,7 @@ struct SettingsView: View {
                             .disabled(model.newProfileName.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 }
-                Note("Applying a layout drags icons across Frost's divider one at a time. Keep the mouse still until it finishes.")
+                Note(items.method == .allowList ? "Applying a layout changes which apps are hidden straight away." : "Applying a layout drags icons across Frost's divider one at a time. Keep the mouse still until it finishes.")
             }
         }
     }
@@ -229,6 +248,17 @@ struct SettingsView: View {
     @ViewBuilder private var nameField: some View {
         if Theme.snapshot { Text("Work").foregroundStyle(Theme.textDim).frame(maxWidth: .infinity, alignment: .leading) }
         else { TextField("Work", text: $model.newProfileName) }
+    }
+
+    private var canApply: Bool { !items.moving && (items.method == .allowList || items.source == .accessibility) }
+
+    private func applyProfile(_ p: Profile) {
+        if items.method == .allowList {
+            store.hiddenBundleIDs = Set(p.hiddenBundleIDs)
+            items.refresh()
+        } else {
+            items.apply(p)
+        }
     }
 
     private func saveProfile() {
@@ -264,6 +294,10 @@ struct SettingsView: View {
                 Row(title: "Version", subtitle: "Semantic versioning; see the changelog for what changed.") {
                     Text(AppInfo.version).font(.system(size: 13, weight: .medium, design: .monospaced)).foregroundStyle(Theme.ink)
                 }
+                Sep()
+                Row(title: "Hiding method", subtitle: items.method == .allowList
+                        ? "System allow-list (private macOS API). Hides whole apps; the Focus and camera indicators are hidden while it is on."
+                        : "Divider. Icons left of the divider are pushed off the edge of the menu bar.") { EmptyView() }
                 Sep()
                 Row(title: "Privacy", subtitle: "No accounts, no telemetry, no network calls. Settings stay on this Mac.") { EmptyView() }
             }

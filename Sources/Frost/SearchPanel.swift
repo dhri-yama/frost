@@ -79,14 +79,16 @@ struct SearchView: View {
 /// Owns the search window: shows it on a hotkey, handles arrow keys and Return, closes on Esc or a click elsewhere.
 final class SearchController {
     private let items: ItemsModel
+    private let activate: (ItemRow) -> Void
     private let model = SearchModel()
     private var window: PanelWindow?
     private var keyMonitor: Any?
     private var clickMonitor: Any?
     private var bag = Set<AnyCancellable>()
 
-    init(items: ItemsModel) {
+    init(items: ItemsModel, activate: @escaping (ItemRow) -> Void) {
         self.items = items
+        self.activate = activate
         Publishers.CombineLatest(items.$hidden, items.$visible).receive(on: DispatchQueue.main).sink { [model] hidden, visible in
             model.hiddenIDs = Set(hidden.map(\.id))
             model.all = (hidden + visible).sorted { $0.item.minX < $1.item.minX }
@@ -120,7 +122,7 @@ final class SearchController {
 
     private func pick(_ row: ItemRow) {
         close()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { AccessibilityScan.press(id: row.id) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [activate] in activate(row) }
     }
 
     func close() {

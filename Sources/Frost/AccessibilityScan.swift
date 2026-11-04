@@ -44,7 +44,8 @@ enum AccessibilityScan {
                 let title = string(child, kAXTitleAttribute) ?? string(child, kAXDescriptionAttribute)
                 found[Int(app.processIdentifier) * 1000 + i] = child
                 out.append(MenuBarItem(windowID: Int(app.processIdentifier) * 1000 + i, pid: Int(app.processIdentifier),
-                                       ownerName: app.localizedName ?? "Unknown", minX: Double(p.x), width: Double(s.width), title: title))
+                                       ownerName: app.localizedName ?? "Unknown", minX: Double(p.x), width: Double(s.width), title: title,
+                                       bundleID: app.bundleIdentifier))
             }
         }
         lock.lock(); elements = found; lock.unlock()
