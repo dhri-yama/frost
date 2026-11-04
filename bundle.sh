@@ -25,5 +25,14 @@ cat > Frost.app/Contents/Info.plist <<PLIST
   <key>LSUIElement</key><true/>
 </dict></plist>
 PLIST
-codesign --force --sign - Frost.app
+# A stable identity keeps the Accessibility permission across rebuilds; ad-hoc signing changes it every build.
+# Use FROST_SIGN_IDENTITY, else the "Frost Dev" certificate from ./make-dev-cert.sh if it exists, else ad-hoc.
+IDENTITY="${FROST_SIGN_IDENTITY:-}"
+if [ -z "$IDENTITY" ] && security find-certificate -c "Frost Dev" >/dev/null 2>&1; then IDENTITY="Frost Dev"; fi
+if [ -n "$IDENTITY" ]; then
+  codesign --force --sign "$IDENTITY" Frost.app && echo "Signed with: $IDENTITY"
+else
+  codesign --force --sign - Frost.app
+  echo "Ad-hoc signed: macOS will forget the Accessibility permission on every rebuild (see ./make-dev-cert.sh)."
+fi
 echo "Built Frost.app $VERSION ($BUILD)"
