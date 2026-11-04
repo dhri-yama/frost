@@ -36,3 +36,25 @@ private func win(_ id: Int, _ owner: String, x: Double, w: Double = 24, layer: I
         #expect(g.hidden.isEmpty && g.visible.count == 2)
     }
 }
+
+@Suite struct PositionGroupingTests {
+    private func item(_ id: Int, _ name: String, x: Double, pid: Int, title: String? = nil) -> MenuBarItem {
+        MenuBarItem(windowID: id, pid: pid, ownerName: name, minX: x, width: 24, title: title)
+    }
+
+    @Test func groupsByDividerPositionAndDropsOwnItems() {
+        let items = [item(1, "Dropbox", x: -5000, pid: 10), item(2, "Frost", x: 1300, pid: 1), item(3, "Clock", x: 1400, pid: 20)]
+        let g = MenuBarScan.group(items, dividerMinX: 1300, ownPID: 1)
+        #expect(g.hidden.map(\.ownerName) == ["Dropbox"])
+        #expect(g.visible.map(\.ownerName) == ["Clock"])
+    }
+
+    @Test func noDividerMeansNothingHidden() {
+        let g = MenuBarScan.group([item(1, "A", x: 5, pid: 10)], dividerMinX: nil, ownPID: 1)
+        #expect(g.hidden.isEmpty && g.visible.count == 1)
+    }
+
+    @Test func titleIsOptionalAndDefaultsToNil() {
+        #expect(MenuBarItem(windowID: 1, pid: 1, ownerName: "A", minX: 0, width: 1).title == nil)
+    }
+}

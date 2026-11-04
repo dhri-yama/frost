@@ -6,12 +6,14 @@ public struct MenuBarItem: Equatable, Identifiable {
     public let pid: Int
     public let ownerName: String
     public let minX: Double, width: Double
+    /// Accessibility title or description, when the Accessibility scan supplied one.
+    public let title: String?
 
     public var id: Int { windowID }
     public var maxX: Double { minX + width }
 
-    public init(windowID: Int, pid: Int, ownerName: String, minX: Double, width: Double) {
-        self.windowID = windowID; self.pid = pid; self.ownerName = ownerName; self.minX = minX; self.width = width
+    public init(windowID: Int, pid: Int, ownerName: String, minX: Double, width: Double, title: String? = nil) {
+        self.windowID = windowID; self.pid = pid; self.ownerName = ownerName; self.minX = minX; self.width = width; self.title = title
     }
 }
 
@@ -43,6 +45,14 @@ public enum MenuBarScan {
         let others = items.filter { !ownWindowIDs.contains($0.windowID) }
         guard let divider = items.first(where: { $0.windowID == dividerWindowID }) else { return (others, []) }
         return (others.filter { $0.minX >= divider.minX }, others.filter { $0.minX < divider.minX })
+    }
+
+    /// Splits items by horizontal position: left of `dividerMinX` is hidden when Frost is collapsed. Items owned by `ownPID`
+    /// (Frost's toggle and divider) are left out. With no divider position, nothing is considered hidden.
+    public static func group(_ items: [MenuBarItem], dividerMinX: Double?, ownPID: Int) -> (visible: [MenuBarItem], hidden: [MenuBarItem]) {
+        let others = items.filter { $0.pid != ownPID }
+        guard let x = dividerMinX else { return (others, []) }
+        return (others.filter { $0.minX >= x }, others.filter { $0.minX < x })
     }
 
     private static func num(_ any: Any?) -> Double? { (any as? NSNumber)?.doubleValue }
