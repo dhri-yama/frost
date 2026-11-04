@@ -29,6 +29,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
+    MainActor.assumeIsolated { Snapshots.run(into: CommandLine.arguments[i + 1]) }
+    exit(0)
+}
+
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate

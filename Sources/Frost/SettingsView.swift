@@ -20,7 +20,7 @@ struct SettingsView: View {
         VStack(spacing: 0) {
             toolbar
             Rectangle().fill(Theme.hairline).frame(height: 1)
-            ScrollView {
+            scrolling {
                 VStack(alignment: .leading, spacing: 28) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(pane.title).font(Theme.display(38, .bold)).foregroundStyle(Theme.ink)
@@ -36,9 +36,13 @@ struct SettingsView: View {
             }
         }
         .frame(width: 720, height: 600)
-        .background { ZStack { Glass(material: Theme.style.material); Theme.glow }.ignoresSafeArea() }
+        .background { ZStack { if !Theme.snapshot { Glass(material: Theme.style.material) }; Theme.glow }.ignoresSafeArea() }
         .environment(\.colorScheme, Theme.scheme)
         .id(store.themeName)   // rebuild every surface when the theme changes
+    }
+
+    @ViewBuilder private func scrolling<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        if Theme.snapshot { content().frame(maxHeight: .infinity, alignment: .top) } else { ScrollView { content() } }
     }
 
     private var toolbar: some View {

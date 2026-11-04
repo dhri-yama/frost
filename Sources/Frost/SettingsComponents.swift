@@ -119,17 +119,20 @@ struct Dropdown<T: Hashable>: View {
     @Binding var selection: T
     var options: [(T, String)]
     var body: some View {
+        let face = HStack(spacing: 8) {
+            Text(options.first { $0.0 == selection }?.1 ?? "").lineLimit(1)
+            Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textDim)
+        }
+        .font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.ink)
+        .padding(.horizontal, 10).frame(height: Control.height)
+        .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
+        if Theme.snapshot { face } else { menu(face) }
+    }
+
+    private func menu<F: View>(_ face: F) -> some View {
         Menu {
             Picker(label, selection: $selection) { ForEach(options, id: \.0) { Text($0.1).tag($0.0) } }.pickerStyle(.inline)
-        } label: {
-            HStack(spacing: 8) {
-                Text(options.first { $0.0 == selection }?.1 ?? "").lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textDim)
-            }
-            .font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.ink)
-            .padding(.horizontal, 10).frame(height: Control.height)
-            .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
-        }
+        } label: { face }
         .menuStyle(.button).menuIndicator(.hidden).buttonStyle(.plain).fixedSize()
         .accessibilityLabel(label)
     }

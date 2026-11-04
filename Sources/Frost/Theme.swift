@@ -65,6 +65,8 @@ extension Style {
 /// Current look. Nothing else hard-codes colour.
 enum Theme {
     static var style = Style.frost
+    /// True while rendering PNGs: ImageRenderer cannot draw NSViewRepresentable, ScrollView or Menu.
+    static var snapshot = false
 
     static var ink: Color { style.ink }
     static func ink(_ opacity: Double) -> Color { style.ink.opacity(opacity) }
