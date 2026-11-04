@@ -6,6 +6,8 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-05
+
 ### Added
 - "What to hide" (Layout, macOS 27): hide the apps you choose, or hide everything except the apps you choose, including apps you open later. In the second mode Frost's own icon and Apple's own apps are never hidden. `HideMode` and `HiddenResolver` in `FrostCore`, with tests.
 - Hiding failures are shown: if macOS refuses an allow-list, Layout says so with the system's message, and About shows whether hiding is working.
