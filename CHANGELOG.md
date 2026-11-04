@@ -6,6 +6,8 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-05
+
 ### Added
 - `make-dev-cert.sh` creates a local "Frost Dev" signing certificate; `bundle.sh` uses it (or `FROST_SIGN_IDENTITY`) so rebuilt copies keep their Accessibility permission. Without one it falls back to ad-hoc signing and says so.
 - `dmg.sh` builds a drag-to-Applications DMG and `release.sh` bumps the version, stamps the changelog and tags.
