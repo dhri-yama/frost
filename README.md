@@ -38,6 +38,16 @@ Open source, no accounts, no telemetry, no network calls. Settings stay on your 
 ## Permissions
 Hiding on macOS 27 needs no permission. Frost can also ask for **Accessibility**, and explains why before you grant it: it lets Frost list only apps that really have a menu bar item, click them for you and (before macOS 27) move them. It cannot see your screen or what you type. Without it Frost still hides and shows apps, but lists every running app and cannot click items for you.
 
+## Install
+1. Download `Frost-<version>.dmg` from the GitHub releases page, open it and drag **Frost** to **Applications**.
+2. Open Frost **from Applications**. On macOS 27 hiding only works from there.
+3. Frost is not notarized, so macOS blocks it once: go to System Settings → Privacy & Security and choose **Open Anyway**.
+4. Follow the first-run setup. Accessibility is optional.
+
+Or with Homebrew: `brew tap dhri-yama/tap && brew install --cask frost`.
+
+**Updates and permissions.** There is no auto-update yet; download the new DMG. Because releases are not signed with a paid Apple Developer ID, macOS may ask you to allow Accessibility again after an update.
+
 ## Build
 Requires macOS 13+ and the Swift toolchain (Command Line Tools are enough).
 

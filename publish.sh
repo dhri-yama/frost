@@ -1,0 +1,25 @@
+#!/bin/sh
+# Publishes the current VERSION: builds the DMG and creates a GitHub release with that version's changelog notes and the DMG
+# attached. Prints the sha256 for the Homebrew cask. Run after ./release.sh and `git push && git push --tags`.
+set -e
+cd "$(dirname "$0")"
+V="$(tr -d '[:space:]' < VERSION)"
+git rev-parse "v$V" >/dev/null 2>&1 || { echo "Tag v$V does not exist: run ./release.sh first." >&2; exit 1; }
+[ "$(git rev-parse "v$V^{commit}")" = "$(git rev-parse HEAD)" ] || { echo "HEAD is not at tag v$V: build releases from the tagged commit." >&2; exit 1; }
+./dmg.sh
+NOTES="$(mktemp)"
+awk -v v="$V" '/^## \[/ { p = index($0, "[" v "]") > 0; next } p' CHANGELOG.md > "$NOTES"
+cat >> "$NOTES" <<EOT
+
+### Install
+1. Open the DMG and drag Frost to **Applications**, then open it **from Applications** (on macOS 27 hiding only works from there).
+2. The app is not notarized. On first launch go to System Settings, Privacy & Security, and choose **Open Anyway**.
+3. Follow the first-run setup. Accessibility is optional.
+- Homebrew: \`brew tap dhri-yama/tap && brew install --cask frost\`
+
+### Notes
+- Frost uses a private macOS API to hide icons on macOS 27. See the README for what that means.
+EOT
+gh release create "v$V" "Frost-$V.dmg" --title "Frost $V" --notes-file "$NOTES"
+rm -f "$NOTES"
+echo "sha256 $(shasum -a 256 "Frost-$V.dmg" | cut -d' ' -f1)  (update version and sha256 in the Homebrew cask)"
