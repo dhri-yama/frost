@@ -141,7 +141,7 @@ struct SettingsView: View {
                 if items.hidden.isEmpty {
                     Note("Nothing is hidden. ⌘-drag icons to the left of Frost's divider (|) to hide them.")
                 } else {
-                    Card { ForEach(Array(items.hidden.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r) } }
+                    Card { ForEach(Array(items.hidden.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r, hidden: true) } }
                     Note("These are off-screen while Frost is collapsed. Click the chevron to reveal them.")
                 }
             }
@@ -149,22 +149,31 @@ struct SettingsView: View {
                 if items.visible.isEmpty && items.hidden.isEmpty {
                     Note(items.trusted ? "Frost could not find any items. Run Frost with --scan in a terminal for details." : "Allow Accessibility access above so Frost can find your menu bar items.")
                 }
-                Card { ForEach(Array(items.visible.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r) } }
+                Card { ForEach(Array(items.visible.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r, hidden: false) } }
             }
             HStack(spacing: 12) {
                 Button("Refresh") { items.refresh() }.buttonStyle(ControlButton())
                 if items.scanning { Text("Scanning…").font(.system(size: 12)).foregroundStyle(Theme.textDim) }
                 Spacer()
             }
-            Note("Found using \(items.source == .accessibility ? "Accessibility" : "the window list"). Frost never changes other apps' icons. Moving items from here arrives in a later version.")
+            Note("Found using \(items.source == .accessibility ? "Accessibility" : "the window list"). Frost never changes other apps' icons, only where they sit.")
+            if items.moving { Note("Moving the icon… keep the mouse still for a moment.") }
+            if items.moveFailed { Note("That item could not be moved. Some system items, like the clock, cannot be rearranged. Try ⌘-dragging it by hand.") }
         }
     }
 
-    private func itemRow(_ r: ItemRow) -> some View {
+    private func itemRow(_ r: ItemRow, hidden: Bool) -> some View {
         Row(title: r.item.ownerName, subtitle: r.item.title.flatMap { $0 == r.item.ownerName ? nil : $0 }) {
-            Group {
+            HStack(spacing: 12) {
                 if let icon = r.icon { Image(nsImage: icon).resizable().frame(width: 22, height: 22) }
                 else { Image(systemName: "app.dashed").font(.system(size: 16)).foregroundStyle(Theme.textDim) }
+                if items.source == .accessibility {
+                    Button(hidden ? "Show" : "Hide") { items.move(r, toHidden: !hidden) }
+                        .buttonStyle(ControlButton())
+                        .frame(width: 64)
+                        .disabled(items.moving).opacity(items.moving ? 0.4 : 1)
+                        .accessibilityLabel("\(hidden ? "Show" : "Hide") \(r.item.ownerName)")
+                }
             }
         }
     }

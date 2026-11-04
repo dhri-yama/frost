@@ -17,6 +17,29 @@ final class MenuBarController: NSObject {
     private var itemsObservation: AnyCancellable?
     var openSettings: () -> Void = {}
     var dividerWindowID: Int { dividerItem.button?.window?.windowNumber ?? -1 }
+    private var wasCollapsed = true
+
+    /// Left edge of the toggle in screen coordinates.
+    var toggleMinX: Double? { toggleItem.button?.window.map { Double($0.frame.minX) } }
+    /// Vertical centre of the menu bar, in the top-left-origin coordinates that Accessibility and CGEvent use.
+    var barY: Double? {
+        guard let w = toggleItem.button?.window, let primary = NSScreen.screens.first else { return nil }
+        return Double(primary.frame.height - w.frame.midY)
+    }
+
+    /// Expands the bar so every item has an on-screen position to drag from. Call `finishMove` afterwards.
+    func prepareForMove() {
+        wasCollapsed = state.collapsed
+        closePanel()
+        state.expand(); apply()
+        hideTimer?.invalidate()
+    }
+
+    func finishMove() {
+        if wasCollapsed { state.collapse() }
+        apply()
+    }
+
     var dividerMinX: Double? { dividerItem.button?.window.map { Double($0.frame.minX) } }
     var ownWindowIDs: Set<Int> { Set([dividerItem, toggleItem].compactMap { $0.button?.window?.windowNumber }) }
 

@@ -11,6 +11,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBar = MenuBarController(store: store, items: items)
         items.dividerWindowID = { [unowned self] in menuBar.dividerWindowID }
         items.dividerMinX = { [unowned self] in menuBar.dividerMinX }
+        items.prepareForMove = { [unowned self] in menuBar.prepareForMove() }
+        items.finishMove = { [unowned self] in menuBar.finishMove() }
+        items.toggleMinX = { [unowned self] in menuBar.toggleMinX }
+        items.barY = { [unowned self] in menuBar.barY }
         items.ownWindowIDs = { [unowned self] in menuBar.ownWindowIDs }
         menuBar.openSettings = { [weak self] in self?.showSettings() }
         if CommandLine.arguments.contains("--settings") { showSettings() }

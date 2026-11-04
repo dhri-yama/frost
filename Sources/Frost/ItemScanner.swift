@@ -19,6 +19,12 @@ final class ItemsModel: ObservableObject {
     @Published var trusted = AccessibilityScan.trusted
     @Published var source: ScanSource = .windowList
     @Published var scanning = false
+    @Published var moving = false
+    @Published var moveFailed = false
+    var prepareForMove: () -> Void = {}
+    var finishMove: () -> Void = {}
+    var toggleMinX: () -> Double? = { nil }
+    var barY: () -> Double? = { nil }
     /// Left edge of Frost's divider in screen coordinates, set by the menu bar controller.
     var dividerMinX: () -> Double? = { nil }
     /// Window numbers of Frost's divider and its own items, used by the window-list fallback.
@@ -46,6 +52,34 @@ final class ItemsModel: ObservableObject {
                 self.source = result.source; self.scanning = false
             }
         }
+    }
+
+    /// Moves an item to the hidden or visible side. Expands the bar, drags, then restores it and rescans.
+    func move(_ row: ItemRow, toHidden: Bool) {
+        guard !moving else { return }
+        moving = true; moveFailed = false
+        prepareForMove()
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self else { return }
+            // Positions shift once the divider shrinks, so read the geometry after the wait.
+            var ok = false
+            DispatchQueue.main.sync {
+                if let d = self.dividerMinX(), let t = self.toggleMinX(), let y = self.barY() {
+                    DispatchQueue.global(qos: .userInitiated).async {
+                        ok = ItemMover.move(id: row.id, toHidden: toHidden, dividerMinX: d, toggleMinX: t, barY: y)
+                        usleep(400_000)
+                        DispatchQueue.main.async { self.endMove(ok) }
+                    }
+                } else { self.endMove(false) }
+            }
+        }
+    }
+
+    private func endMove(_ ok: Bool) {
+        finishMove()
+        moving = false; moveFailed = !ok
+        // Give the bar a moment to settle after collapsing before reading positions again.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in self?.refresh() }
     }
 
     /// Everything found, left to right; used by `--scan`.

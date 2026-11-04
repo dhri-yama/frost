@@ -6,6 +6,17 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-05
+
+### Added
+- Hide and Show buttons in the Layout pane (with Accessibility): Frost expands the bar, performs the ⌘-drag that moves the icon to the other side of its divider, restores the bar and rescans. Previously icons had to be ⌘-dragged by hand, so nothing collapsed until you did.
+- `MovePlan` in `FrostCore` (where to press and release for hide/show, and the drag path), with tests.
+- A message when an item cannot be moved (some system items are fixed).
+
+### Known issues
+- Moving uses synthetic mouse events and has only been checked on paper so far. Keep the mouse still for a second while an item moves.
+- Rebuilding with `./bundle.sh` changes the ad-hoc signature, so macOS forgets the Accessibility permission; run `tccutil reset Accessibility local.frost` and allow it again. A release signed with a stable certificate will not have this problem.
+
 ## [0.5.0] - 2026-11-05
 
 ### Added

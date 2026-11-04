@@ -12,6 +12,7 @@ enum Snapshots {
         let items = ItemsModel()
         func sample(_ id: Int, _ name: String, _ title: String? = nil) -> ItemRow { ItemRow(item: MenuBarItem(windowID: id, pid: 0, ownerName: name, minX: 0, width: 24, title: title), icon: nil) }
         items.trusted = false
+        items.source = .accessibility
         items.visible = [sample(1, "Control Center"), sample(2, "Clock"), sample(3, "Wi-Fi")]
         items.hidden = [sample(4, "Dropbox"), sample(5, "1Password", "Locked"), sample(6, "Docker Desktop")]
         for style in Style.all {
