@@ -299,6 +299,10 @@ struct SettingsView: View {
                         ? "System allow-list (private macOS API). Hides whole apps; the Focus and camera indicators are hidden while it is on."
                         : "Divider. Icons left of the divider are pushed off the edge of the menu bar.") { EmptyView() }
                 Sep()
+                Row(title: "Setup", subtitle: "The first-run walkthrough: install location, chevron placement and Accessibility.") {
+                    Button("Show setup") { store.showSetup?() }.buttonStyle(ControlButton())
+                }
+                Sep()
                 Row(title: "Privacy", subtitle: "No accounts, no telemetry, no network calls. Settings stay on this Mac.") { EmptyView() }
             }
         }

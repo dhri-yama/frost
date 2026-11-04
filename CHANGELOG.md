@@ -6,6 +6,12 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Added
+- First-run setup: a short walkthrough (welcome, where Frost lives, Accessibility, chevron placement, done) that explains each requirement before asking for it. It shows once on first launch and again from Settings → About → Show setup.
+- "Move it for me" in the setup ⌘-drags Frost's chevron to just left of the Control Center icon, so hidden icons open out to its left. `ChevronPlacement` in `FrostCore`, with tests. Needs Accessibility; the manual way is described beside it.
+- An app icon, drawn in code (`Tools/make-icon.swift`, regenerated with `./make-icon.sh`) and bundled by `bundle.sh`.
+- Snapshots now include the setup screens.
+
 ## [0.12.0] - 2026-11-05
 
 ### Removed

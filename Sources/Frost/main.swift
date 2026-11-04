@@ -9,6 +9,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var search: SearchController!
     let hotkeys = Hotkeys()
     var settingsWindow: NSWindow?
+    var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         menuBar = MenuBarController(store: store, items: items)
@@ -28,10 +29,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hotkeys.register(key: kVK_ANSI_P) { [unowned self] in if store.shortcutsEnabled { store.presenting.toggle() } }
         menuBar.openSearch = { [unowned self] in search.show() }
         menuBar.openSettings = { [weak self] in self?.showSettings() }
+        store.showSetup = { [weak self] in self?.showOnboarding() }
         if CommandLine.arguments.contains("--settings") { showSettings() }
+        else if !store.didOnboard { showOnboarding() }
     }
 
     func applicationWillTerminate(_ notification: Notification) { menuBar.release() }
+
+    func showOnboarding() {
+        items.refresh()
+        let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 560, height: 520),
+                         styleMask: [.titled, .closable, .fullSizeContentView], backing: .buffered, defer: false)
+        w.titlebarAppearsTransparent = true
+        w.titleVisibility = .hidden
+        w.isReleasedWhenClosed = false
+        w.appearance = Theme.appearance
+        let finish: () -> Void = { [weak self] in self?.store.didOnboard = true; self?.onboardingWindow?.close(); self?.onboardingWindow = nil }
+        w.contentView = NSHostingView(rootView: OnboardingView(
+            items: items,
+            moveChevron: { [weak self] done in self?.menuBar.moveChevronToRightEdge(done: done) },
+            openSettings: { [weak self] in self?.showSettings() },
+            finish: finish))
+        w.center()
+        onboardingWindow = w
+        NSApp.activate(ignoringOtherApps: true)
+        w.makeKeyAndOrderFront(nil)
+    }
 
     func showSettings() {
         if settingsWindow == nil {

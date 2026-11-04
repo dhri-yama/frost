@@ -47,6 +47,20 @@ final class MenuBarController: NSObject {
         apply()
     }
 
+    /// ⌘-drags the chevron to sit just left of the Control Center item, so hidden icons appear on its left. Needs Accessibility.
+    func moveChevronToRightEdge(done: @escaping (Bool) -> Void) {
+        guard AccessibilityScan.trusted, let w = toggleItem.button?.window, let y = barY else { done(false); return }
+        let startX = Double(w.frame.midX)
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let x = ChevronPlacement.dropX(items: AccessibilityScan.scan(), ownPID: Int(getpid())) else {
+                DispatchQueue.main.async { done(false) }; return
+            }
+            ItemMover.drag(MovePlan(start: MovePoint(x: startX, y: y), end: MovePoint(x: x, y: y)))
+            usleep(500_000)
+            DispatchQueue.main.async { done(true) }
+        }
+    }
+
     var dividerMinX: Double? { dividerItem.button?.window.map { Double($0.frame.minX) } }
     var ownWindowIDs: Set<Int> { Set([dividerItem, toggleItem].compactMap { $0.button?.window?.windowNumber }) }
 

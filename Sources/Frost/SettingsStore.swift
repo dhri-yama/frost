@@ -10,6 +10,8 @@ final class SettingsStore: ObservableObject {
     @Published var autoHide: AutoHide { didSet { defaults.set(autoHide.rawValue, forKey: "autoHide"); onAutoHideChange?() } }
     @Published var revealMode: RevealMode { didSet { defaults.set(revealMode.rawValue, forKey: "revealMode") } }
     @Published var shortcutsEnabled: Bool { didSet { defaults.set(shortcutsEnabled, forKey: "shortcutsEnabled") } }
+    /// Whether the first-run setup has been shown.
+    @Published var didOnboard: Bool { didSet { defaults.set(didOnboard, forKey: "didOnboard") } }
     @Published var hideOnLaunch: Bool { didSet { defaults.set(hideOnLaunch, forKey: "hideOnLaunch") } }
     @Published var profiles: [Profile] { didSet { defaults.set(try? JSONEncoder().encode(profiles), forKey: "profiles") } }
     /// Presenting mode keeps everything hidden until switched off. Deliberately not saved: it never survives a relaunch.
@@ -20,6 +22,8 @@ final class SettingsStore: ObservableObject {
     @Published var loginError: String?
 
     var onHiddenChange: (() -> Void)?
+    /// Opens the first-run setup again; set by the app delegate.
+    var showSetup: (() -> Void)?
     var onAutoHideChange: (() -> Void)?
     var onPresentingChange: (() -> Void)?
     private var syncingLogin = false
@@ -31,6 +35,7 @@ final class SettingsStore: ObservableObject {
         autoHide = AutoHide(rawValue: defaults.object(forKey: "autoHide") as? Int ?? AutoHide.tenSeconds.rawValue) ?? .tenSeconds
         revealMode = RevealMode(rawValue: defaults.object(forKey: "revealMode") as? Int ?? 0) ?? .inline
         shortcutsEnabled = defaults.object(forKey: "shortcutsEnabled") as? Bool ?? true
+        didOnboard = defaults.object(forKey: "didOnboard") as? Bool ?? false
         hideOnLaunch = defaults.object(forKey: "hideOnLaunch") as? Bool ?? true
         hiddenBundleIDs = Set(defaults.stringArray(forKey: "hiddenBundleIDs") ?? [])
         profiles = defaults.data(forKey: "profiles").flatMap { try? JSONDecoder().decode([Profile].self, from: $0) } ?? []

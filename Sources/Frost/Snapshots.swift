@@ -30,6 +30,15 @@ enum Snapshots {
                 try? png.write(to: URL(fileURLWithPath: folder).appendingPathComponent("panel-\(style.name.lowercased()).png"))
             }
         }
+        Theme.style = Style.frost
+        for step in OnboardingStep.allCases {
+            let view = OnboardingView(items: items, initialStep: step, moveChevron: { _ in }, openSettings: {}, finish: {})
+                .background(Style.hex(0x10131A))
+            let r = ImageRenderer(content: view); r.scale = 2
+            if let img = r.nsImage, let tiff = img.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff), let png = rep.representation(using: .png, properties: [:]) {
+                try? png.write(to: URL(fileURLWithPath: folder).appendingPathComponent("onboarding-\(step.rawValue)-\(step).png"))
+            }
+        }
         for pane in Pane.allCases { for style in Style.all {
             store.themeName = style.name
             let view = SettingsView(store: store, items: items, initialPane: pane)

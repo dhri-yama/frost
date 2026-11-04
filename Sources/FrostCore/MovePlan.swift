@@ -11,6 +11,8 @@ public struct MovePlan: Equatable {
     public let start: MovePoint
     public let end: MovePoint
 
+    public init(start: MovePoint, end: MovePoint) { self.start = start; self.end = end }
+
     /// Hiding releases just inside the divider's left edge (the item lands left of it); showing releases just inside the
     /// toggle's left edge (the item lands between the divider and the toggle, so it stays visible).
     public static func make(item: MenuBarItem, toHidden: Bool, dividerMinX: Double, toggleMinX: Double, barY: Double) -> MovePlan {

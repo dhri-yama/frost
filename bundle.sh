@@ -11,12 +11,15 @@ BIN="$(swift build -c release $ARCHS --show-bin-path)/Frost"
 rm -rf Frost.app
 mkdir -p Frost.app/Contents/MacOS
 cp "$BIN" Frost.app/Contents/MacOS/Frost
+mkdir -p Frost.app/Contents/Resources
+[ -f Resources/AppIcon.icns ] && cp Resources/AppIcon.icns Frost.app/Contents/Resources/AppIcon.icns
 cat > Frost.app/Contents/Info.plist <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>CFBundleExecutable</key><string>Frost</string>
   <key>CFBundleIdentifier</key><string>local.frost</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleName</key><string>Frost</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>$VERSION</string>

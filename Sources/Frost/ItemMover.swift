@@ -11,6 +11,12 @@ enum ItemMover {
               MovePlan.needsMove(item: item, toHidden: toHidden, dividerMinX: dividerMinX) else { return false }
         let plan = MovePlan.make(item: item, toHidden: toHidden, dividerMinX: dividerMinX, toggleMinX: toggleMinX, barY: barY)
 
+        drag(plan)
+        return true
+    }
+
+    /// Performs a ⌘-drag from the plan's start to its end, then puts the pointer back where it was.
+    static func drag(_ plan: MovePlan) {
         let home = CGEvent(source: nil)?.location ?? .zero
         func post(_ type: CGEventType, _ p: MovePoint) {
             let e = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: CGPoint(x: p.x, y: p.y), mouseButton: .left)
@@ -26,6 +32,5 @@ enum ItemMover {
         post(.leftMouseUp, path[path.count - 1])
         let back = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved, mouseCursorPosition: home, mouseButton: .left)
         back?.post(tap: .cghidEventTap)
-        return true
     }
 }
