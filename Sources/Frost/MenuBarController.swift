@@ -70,12 +70,13 @@ final class MenuBarController: NSObject {
         toggleItem.button?.action = #selector(clicked(_:))
         toggleItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         toggleItem.button?.setAccessibilityLabel("Frost: show or hide menu bar items")
-        if let b = toggleItem.button {
-            b.addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeAlways, .inVisibleRect], owner: self, userInfo: nil))
-        }
         store.onAutoHideChange = { [weak self] in self?.scheduleAutoHide() }
         store.onPresentingChange = { [weak self] in self?.presentingChanged() }
         store.onHiddenChange = { [weak self] in self?.reapplyRestriction() }
+        // Hover is detected by watching the pointer, not with a tracking area: on macOS 27 the chevron is a proxy for a window
+        // the system owns, so mouse-entered events never arrive. Global mouse-moved monitoring needs no permission.
+        _ = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in self?.watchChevron() }
+        _ = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] e in self?.watchChevron(); return e }
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] _ in
             self?.reapplyRestriction()   // a newly launched app must be added to the allow-list or it would be hidden
         }
@@ -120,8 +121,20 @@ final class MenuBarController: NSObject {
 
     private var isRevealed: Bool { store.revealMode == .panel ? panel?.isVisible == true : !state.collapsed }
 
-    /// Tracking-area callback: the pointer reached the chevron. Reveals after a short dwell so a pass-through does nothing.
-    @objc func mouseEntered(with event: NSEvent) {
+    private var overChevron = false
+
+    /// Called on every pointer move: works out whether the pointer just entered or left the chevron.
+    private func watchChevron() {
+        guard store.revealTrigger.onHover, !store.presenting, let frame = toggleItem.button?.window?.frame else {
+            overChevron = false; return
+        }
+        let over = frame.insetBy(dx: -2, dy: -2).contains(NSEvent.mouseLocation)
+        if over && !overChevron { chevronEntered() } else if !over && overChevron { hoverWork?.cancel() }
+        overChevron = over
+    }
+
+    /// The pointer reached the chevron. Reveals after a short dwell so a pass-through does nothing.
+    private func chevronEntered() {
         guard store.revealTrigger.onHover, !store.presenting else { return }
         leaveWork?.cancel(); leaveWork = nil
         guard !isRevealed else { return }
@@ -130,8 +143,6 @@ final class MenuBarController: NSObject {
         hoverWork = w
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: w)
     }
-
-    @objc func mouseExited(with event: NSEvent) { hoverWork?.cancel() }
 
     private func revealByHover() {
         guard !isRevealed, !store.presenting else { return }
