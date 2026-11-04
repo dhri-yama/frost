@@ -8,7 +8,7 @@ enum Snapshots {
     @MainActor static func run(into folder: String) {
         try? FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true)
         // A throwaway defaults suite, so rendering every theme never changes the user's saved settings.
-        let suite = "local.frost.snapshot"
+        let suite = "io.github.dhri-yama.frost.snapshot"
         UserDefaults().removePersistentDomain(forName: suite)
         let store = SettingsStore(defaults: UserDefaults(suiteName: suite)!)
         defer { UserDefaults().removePersistentDomain(forName: suite) }

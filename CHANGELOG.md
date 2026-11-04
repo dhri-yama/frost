@@ -6,6 +6,17 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Added
+- MIT license.
+- `publish.sh` (builds the DMG and creates the GitHub release with install notes) and a Homebrew cask template in `packaging/`.
+- Install instructions in the README.
+
+### Changed
+- The bundle identifier is now `io.github.dhri-yama.frost` (it was the development placeholder `local.frost`). On first launch Frost copies the settings saved under the old identifier (`SettingsMigration`, with tests).
+
+### Notes for existing users
+- macOS keys the Accessibility permission and the chevron's position to the bundle identifier, so after this update allow Accessibility again and use "Move it for me" (or ⌘-drag the chevron) once.
+
 ## [0.15.1] - 2026-11-05
 
 ### Fixed

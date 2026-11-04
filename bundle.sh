@@ -18,7 +18,7 @@ cat > Frost.app/Contents/Info.plist <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>CFBundleExecutable</key><string>Frost</string>
-  <key>CFBundleIdentifier</key><string>local.frost</string>
+  <key>CFBundleIdentifier</key><string>io.github.dhri-yama.frost</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleName</key><string>Frost</string>
   <key>CFBundlePackageType</key><string>APPL</string>

@@ -59,7 +59,7 @@ open Frost.app
 ```
 
 ### Keeping the Accessibility permission across rebuilds
-Ad-hoc signed builds change identity on every build, so macOS forgets the permission. Run `./make-dev-cert.sh` once to create a local "Frost Dev" certificate; `./bundle.sh` then uses it automatically. After the first signed build, reset once with `tccutil reset Accessibility local.frost` and allow Frost again.
+Ad-hoc signed builds change identity on every build, so macOS forgets the permission. Run `./make-dev-cert.sh` once to create a local "Frost Dev" certificate; `./bundle.sh` then uses it automatically. After the first signed build, reset once with `tccutil reset Accessibility io.github.dhri-yama.frost` and allow Frost again.
 
 ## Diagnostics
 - `Frost --scan` prints the menu bar items Frost can find and which method it used.

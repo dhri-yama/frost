@@ -118,6 +118,18 @@ if CommandLine.arguments.contains("--length-lab") {
     exit(0)
 }
 
+/// First launch under the public bundle identifier: copy the settings saved under the old development one.
+func migrateOldSettings() {
+    let defaults = UserDefaults.standard
+    let marker = "migratedFromLocalFrost"
+    guard !defaults.bool(forKey: marker), let id = Bundle.main.bundleIdentifier, id != SettingsMigration.previousBundleID else { return }
+    defer { defaults.set(true, forKey: marker) }
+    guard let old = defaults.persistentDomain(forName: SettingsMigration.previousBundleID) else { return }
+    let existing = Set(defaults.persistentDomain(forName: id)?.keys.map { $0 } ?? [])
+    for key in SettingsMigration.keysToCopy(old: old, existing: existing) { defaults.set(old[key], forKey: key) }
+}
+migrateOldSettings()
+
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate

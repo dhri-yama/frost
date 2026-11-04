@@ -21,4 +21,4 @@ CNF
 openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -keyout "$TMP/key.pem" -out "$TMP/cert.pem" -config "$TMP/openssl.cnf" 2>/dev/null
 openssl pkcs12 -export -inkey "$TMP/key.pem" -in "$TMP/cert.pem" -out "$TMP/frost.p12" -passout pass:frost 2>/dev/null
 security import "$TMP/frost.p12" -k "$HOME/Library/Keychains/login.keychain-db" -P frost -T /usr/bin/codesign >/dev/null
-echo "Created \"$NAME\". Now run ./bundle.sh, then tccutil reset Accessibility local.frost and allow Frost once more."
+echo "Created \"$NAME\". Now run ./bundle.sh, then tccutil reset Accessibility io.github.dhri-yama.frost and allow Frost once more."

@@ -14,6 +14,6 @@ cask "frost" do
   app "Frost.app"
 
   zap trash: [
-    "~/Library/Preferences/local.frost.plist",
+    "~/Library/Preferences/io.github.dhri-yama.frost.plist",
   ]
 end
