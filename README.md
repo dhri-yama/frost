@@ -4,6 +4,23 @@ A macOS menu bar organiser. Frost hides the icons you do not need all the time, 
 
 Open source, no accounts, no telemetry, no network calls. Settings stay on your Mac.
 
+<p align="center"><img src="docs/images/general-frost.jpg" width="640" alt="Frost settings in the default Frost theme"></p>
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/images/general-midnight.jpg" width="230" alt="Midnight theme"><br>Midnight</td>
+    <td align="center"><img src="docs/images/general-mono.jpg" width="230" alt="Mono theme"><br>Mono</td>
+    <td align="center"><img src="docs/images/general-paper.jpg" width="230" alt="Paper theme"><br>Paper</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/layout-frost.jpg" width="230" alt="Layout pane"><br>Layout</td>
+    <td align="center"><img src="docs/images/profiles-frost.jpg" width="230" alt="Profiles pane"><br>Profiles</td>
+    <td align="center"><img src="docs/images/keys-frost.jpg" width="230" alt="Keys pane with remappable shortcuts"><br>Keys</td>
+  </tr>
+</table>
+
+<sub>Images are rendered by the app itself (`Frost --snapshot <folder>`) with sample data, so the real macOS background blur isn't visible in them.</sub>
+
 ## Features
 - **Hide and show:** a divider and chevron in the menu bar. Everything left of the divider is hidden until you click the chevron (or press ⌃⌥H by default). Revealed items hide again after a delay you choose.
 - **Panel mode:** show hidden items in a themed panel under the menu bar instead of the bar itself. Click a tile to click the real item.
