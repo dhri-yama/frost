@@ -6,6 +6,17 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-05
+
+### Added
+- Accessibility scan: reads every app's `AXExtrasMenuBar` to list menu bar items with their title, position and owner. Used first when permission is granted; the window-list scan is the fallback.
+- Layout pane explains the Accessibility permission (why it is needed and what it cannot do), with Allow and Open Settings buttons, and shows which source found the items.
+- Items are grouped by position against Frost's divider, so hidden and visible lists work with either scan source.
+- `Frost --scan` reports whether Accessibility is granted and which source it used.
+
+### Known issues
+- The Accessibility scan has not been run against a real menu bar yet (it needs the permission, which could not be granted in the development session). Please run `--scan` after allowing your terminal and report the output.
+
 ## [0.3.0] - 2026-11-05
 
 ### Added

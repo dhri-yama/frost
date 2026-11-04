@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         menuBar = MenuBarController(store: store)
         items.dividerWindowID = { [unowned self] in menuBar.dividerWindowID }
+        items.dividerMinX = { [unowned self] in menuBar.dividerMinX }
         items.ownWindowIDs = { [unowned self] in menuBar.ownWindowIDs }
         menuBar.openSettings = { [weak self] in self?.showSettings() }
         if CommandLine.arguments.contains("--settings") { showSettings() }
@@ -40,11 +41,16 @@ if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLi
 
 if CommandLine.arguments.contains("--scan") {
     let items = ItemsModel()
+    let done = DispatchSemaphore(value: 0)
     items.refresh()
-    let all = items.hidden + items.visible
-    print("Frost \(AppInfo.version): found \(all.count) menu bar item(s) via the window list")
-    for r in all { print(String(format: "%8.0f  %@", r.item.minX, r.item.ownerName)) }
-    if all.isEmpty { print("None found. On newer macOS versions the system may not expose status items as windows; an Accessibility-based scan is planned.") }
+    DispatchQueue.global().async {
+        while items.scanning { usleep(50_000) }
+        done.signal()
+    }
+    // refresh() publishes on the main queue, so spin it until the scan finishes.
+    while done.wait(timeout: .now() + .milliseconds(20)) == .timedOut { RunLoop.main.run(until: Date().addingTimeInterval(0.02)) }
+    print("Frost \(AppInfo.version): Accessibility \(items.trusted ? "granted" : "NOT granted (this terminal needs it)"); \(items.all.count) item(s) via \(items.source == .accessibility ? "Accessibility" : "the window list")")
+    for r in items.all { print(String(format: "%8.0f  %@%@", r.item.minX, r.item.ownerName, r.item.title.map { " – \($0)" } ?? "")) }
     exit(0)
 }
 

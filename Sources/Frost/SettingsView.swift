@@ -122,6 +122,18 @@ struct SettingsView: View {
 
     private var layout: some View {
         VStack(alignment: .leading, spacing: 28) {
+            if !items.trusted {
+                Block(title: "Accessibility") {
+                    Row(title: "Allow Accessibility access",
+                        subtitle: "Lets Frost read which icons are in the menu bar so it can list and later arrange them. It cannot see your screen or what you type.") {
+                        HStack(spacing: 8) {
+                            Button("Allow") { AccessibilityScan.requestTrust() }.buttonStyle(ControlButton(primary: true))
+                            Button("Open Settings") { AccessibilityScan.openSettings() }.buttonStyle(ControlButton())
+                        }
+                    }
+                    Note("Without it Frost falls back to a less complete scan. After allowing it, press Refresh.")
+                }
+            }
             Block(title: "Hidden (\(items.hidden.count))") {
                 if items.hidden.isEmpty {
                     Note("Nothing is hidden. ⌘-drag icons to the left of Frost's divider (|) to hide them.")
@@ -132,17 +144,21 @@ struct SettingsView: View {
             }
             Block(title: "Visible (\(items.visible.count))") {
                 if items.visible.isEmpty && items.hidden.isEmpty {
-                    Note("Frost could not find any items. Newer macOS versions may not list other apps' menu bar items in the window list; an Accessibility-based scan is planned. Run Frost with --scan for details.")
+                    Note(items.trusted ? "Frost could not find any items. Run Frost with --scan in a terminal for details." : "Allow Accessibility access above so Frost can find your menu bar items.")
                 }
                 Card { ForEach(Array(items.visible.enumerated()), id: \.element.id) { i, r in if i > 0 { Sep() }; itemRow(r) } }
             }
-            HStack { Button("Refresh") { items.refresh() }.buttonStyle(ControlButton()); Spacer() }
-            Note("Frost reads the window list to find these items. It needs no permission and never changes other apps' icons. Moving items from here arrives in a later version.")
+            HStack(spacing: 12) {
+                Button("Refresh") { items.refresh() }.buttonStyle(ControlButton())
+                if items.scanning { Text("Scanning…").font(.system(size: 12)).foregroundStyle(Theme.textDim) }
+                Spacer()
+            }
+            Note("Found using \(items.source == .accessibility ? "Accessibility" : "the window list"). Frost never changes other apps' icons. Moving items from here arrives in a later version.")
         }
     }
 
     private func itemRow(_ r: ItemRow) -> some View {
-        Row(title: r.item.ownerName) {
+        Row(title: r.item.ownerName, subtitle: r.item.title.flatMap { $0 == r.item.ownerName ? nil : $0 }) {
             Group {
                 if let icon = r.icon { Image(nsImage: icon).resizable().frame(width: 22, height: 22) }
                 else { Image(systemName: "app.dashed").font(.system(size: 16)).foregroundStyle(Theme.textDim) }
