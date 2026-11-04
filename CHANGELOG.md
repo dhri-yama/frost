@@ -6,6 +6,8 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-05
+
 ### Added
 - MIT license.
 - `publish.sh` (builds the DMG and creates the GitHub release with install notes) and a Homebrew cask template in `packaging/`.
