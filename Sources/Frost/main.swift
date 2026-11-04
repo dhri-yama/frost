@@ -1,10 +1,13 @@
 import AppKit
 import SwiftUI
+import Carbon.HIToolbox
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let store = SettingsStore()
     let items = ItemsModel()
     var menuBar: MenuBarController!
+    var search: SearchController!
+    let hotkeys = Hotkeys()
     var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -16,6 +19,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         items.toggleMinX = { [unowned self] in menuBar.toggleMinX }
         items.barY = { [unowned self] in menuBar.barY }
         items.ownWindowIDs = { [unowned self] in menuBar.ownWindowIDs }
+        search = SearchController(items: items)
+        hotkeys.register(key: kVK_ANSI_H) { [unowned self] in if store.shortcutsEnabled { menuBar.toggleFromShortcut() } }
+        hotkeys.register(key: kVK_Space) { [unowned self] in if store.shortcutsEnabled { search.toggle() } }
+        menuBar.openSearch = { [unowned self] in search.show() }
         menuBar.openSettings = { [weak self] in self?.showSettings() }
         if CommandLine.arguments.contains("--settings") { showSettings() }
     }

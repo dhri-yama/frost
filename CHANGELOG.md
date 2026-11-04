@@ -6,6 +6,17 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-05
+
+### Added
+- Search: ⌃⌥Space (or "Search items…" in the chevron's right-click menu) opens a themed search panel over every menu bar item, hidden or not. Type to filter, ↑ ↓ to choose, Return to click the item, Esc to close. Ranked by name prefix, then name, then title (`ItemSearch` in `FrostCore`, with tests).
+- Global shortcut ⌃⌥H shows or hides items, ported from Gazewell's Carbon hotkeys (no extra permission).
+- Keys pane with an on/off switch for global shortcuts.
+
+### Known issues
+- Shortcuts are fixed; there is no key recorder yet.
+- Search and the shortcuts have not been tried on a real menu bar yet. Clicking a result needs Accessibility access.
+
 ## [0.6.0] - 2026-11-05
 
 ### Added

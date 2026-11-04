@@ -2,15 +2,16 @@ import SwiftUI
 import FrostCore
 
 enum Pane: String, CaseIterable {
-    case general, layout, about
+    case general, layout, keys, about
     var title: String { rawValue.capitalized }
     var symbol: String {
-        switch self { case .general: return "gearshape.fill"; case .layout: return "menubar.rectangle"; case .about: return "info" }
+        switch self { case .general: return "gearshape.fill"; case .layout: return "menubar.rectangle"; case .keys: return "command"; case .about: return "info" }
     }
     var blurb: String {
         switch self {
         case .general: return "Theme, hiding and startup."
         case .layout: return "Which icons are visible and which are tucked away."
+        case .keys: return "Global shortcuts that work from any app."
         case .about: return "Version and what Frost does with your data."
         }
     }
@@ -45,6 +46,7 @@ struct SettingsView: View {
                     switch pane {
                     case .general: general
                     case .layout: layout
+                    case .keys: keys
                     case .about: about
                     }
                 }
@@ -176,6 +178,24 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    private var keys: some View {
+        Block(title: "Shortcuts") {
+            Card {
+                ToggleRow(title: "Enable global shortcuts", subtitle: "Turn off if they clash with another app.", isOn: $store.shortcutsEnabled)
+                Sep()
+                shortcut("Show or hide items", "⌃⌥H")
+                Sep()
+                shortcut("Search menu bar items", "⌃⌥Space")
+            }
+            Note("Search lists every item, hidden or not. Type to filter, ↑ ↓ to choose, Return to click it, Esc to close. Clicking needs Accessibility access.")
+        }
+    }
+
+    private func shortcut(_ title: String, _ keys: String) -> some View {
+        Row(title: title) { Text(keys).font(.system(size: 13, weight: .medium, design: .monospaced)).foregroundStyle(Theme.ink)
+            .padding(.horizontal, 10).frame(height: Control.height).background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius)) }
     }
 
     private var about: some View {

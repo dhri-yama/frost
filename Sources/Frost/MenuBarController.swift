@@ -16,6 +16,7 @@ final class MenuBarController: NSObject {
     private var clickMonitor: Any?
     private var itemsObservation: AnyCancellable?
     var openSettings: () -> Void = {}
+    var openSearch: () -> Void = {}
     var dividerWindowID: Int { dividerItem.button?.window?.windowNumber ?? -1 }
     private var wasCollapsed = true
 
@@ -139,6 +140,7 @@ final class MenuBarController: NSObject {
     private func showMenu() {
         let menu = NSMenu()
         menu.addItem(withTitle: store.revealMode == .panel ? "Show hidden items panel" : (state.collapsed ? "Show hidden items" : "Hide items"), action: #selector(toggleFromMenu), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Search items…", action: #selector(searchFromMenu), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(settingsFromMenu), keyEquivalent: ",").target = self
         menu.addItem(withTitle: "Quit Frost", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
@@ -147,6 +149,10 @@ final class MenuBarController: NSObject {
         toggleItem.menu = nil   // restore plain click behaviour
     }
 
+    /// Same as clicking the toggle; used by the global shortcut.
+    func toggleFromShortcut() { toggleFromMenu() }
+
     @objc private func toggleFromMenu() { if store.revealMode == .panel { togglePanel() } else { state.toggle(); apply() } }
+    @objc private func searchFromMenu() { openSearch() }
     @objc private func settingsFromMenu() { openSettings() }
 }
