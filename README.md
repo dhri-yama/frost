@@ -5,14 +5,14 @@ A macOS menu bar organiser. Frost hides the icons you do not need all the time, 
 Open source, no accounts, no telemetry, no network calls. Settings stay on your Mac.
 
 ## Features
-- **Hide and show:** a divider and chevron in the menu bar. Everything left of the divider is hidden until you click the chevron (or press ⌃⌥H). Revealed items hide again after a delay you choose.
+- **Hide and show:** a divider and chevron in the menu bar. Everything left of the divider is hidden until you click the chevron (or press ⌃⌥H by default). Revealed items hide again after a delay you choose.
 - **Panel mode:** show hidden items in a themed panel under the menu bar instead of the bar itself. Click a tile to click the real item.
 - **Layout:** the Layout tab lists every item, hidden or visible, with **Hide** and **Show** buttons that move the icon for you.
 - **Search:** ⌃⌥Space lists every item. Type to filter, ↑ ↓ to choose, Return to click it.
 - **Profiles:** save which apps are hidden as a named layout and apply it later.
 - **Presenting mode:** keep everything hidden for screen sharing (⌃⌥P).
 - **Themes:** Frost, Midnight, Mono and Paper. A theme only styles Frost's own windows, never other apps' icons.
-- Open at login, global shortcuts you can switch off.
+- Open at login, global shortcuts you can change in Settings → Keys or switch off. Defaults: ⌃⌥H show or hide, ⌃⌥Space search, ⌃⌥P presenting mode.
 
 ## How hiding works
 - **macOS 26 and earlier:** a divider in the menu bar grows wide and pushes the icons left of it off the edge.

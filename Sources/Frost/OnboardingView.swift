@@ -39,14 +39,15 @@ final class OnboardingModel: ObservableObject {
 
 struct OnboardingView: View {
     @ObservedObject var items: ItemsModel
+    var store: SettingsStore
     @StateObject private var model: OnboardingModel
     var moveChevron: (@escaping (Bool) -> Void) -> Void
     var openSettings: () -> Void
     var finish: () -> Void
 
-    init(items: ItemsModel, initialStep: OnboardingStep = .welcome, moveChevron: @escaping (@escaping (Bool) -> Void) -> Void,
+    init(items: ItemsModel, store: SettingsStore, initialStep: OnboardingStep = .welcome, moveChevron: @escaping (@escaping (Bool) -> Void) -> Void,
          openSettings: @escaping () -> Void, finish: @escaping () -> Void) {
-        self.items = items; self.moveChevron = moveChevron; self.openSettings = openSettings; self.finish = finish
+        self.items = items; self.store = store; self.moveChevron = moveChevron; self.openSettings = openSettings; self.finish = finish
         _model = StateObject(wrappedValue: OnboardingModel(initialStep))
     }
 
@@ -137,8 +138,8 @@ struct OnboardingView: View {
         case .done:
             VStack(alignment: .leading, spacing: 14) {
                 point("slider.horizontal.3", "Settings → Layout: press Hide next to the apps you want out of the way.")
-                point("magnifyingglass", "⌃⌥Space searches every menu bar item, hidden or not.")
-                point("rectangle.on.rectangle", "⌃⌥P keeps everything hidden while you present.")
+                point("magnifyingglass", "\(store.shortcuts[.search].display) searches every menu bar item, hidden or not.")
+                point("rectangle.on.rectangle", "\(store.shortcuts[.presenting].display) keeps everything hidden while you present.")
             }
         }
     }

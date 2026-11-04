@@ -25,13 +25,54 @@ final class PaneModel: ObservableObject {
     init(_ pane: Pane = .general) { self.pane = pane }
 }
 
+/// Records a new shortcut for one action: the next key press (with modifiers) becomes the shortcut. Esc cancels.
+final class RecorderModel: ObservableObject {
+    @Published var recording: ShortcutAction?
+    @Published var message: String?
+    private var monitor: Any?
+    private let store: SettingsStore
+    init(store: SettingsStore) { self.store = store }
+
+    func start(_ action: ShortcutAction) {
+        stop()
+        recording = action; message = nil
+        monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] e in self?.handle(e); return nil }   // swallow keys while recording
+    }
+
+    func stop() {
+        if let m = monitor { NSEvent.removeMonitor(m); monitor = nil }
+        recording = nil
+    }
+
+    private func handle(_ e: NSEvent) {
+        guard let action = recording else { return }
+        if e.keyCode == 53 { stop(); return }                         // Esc
+        let f = e.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        var mods: UInt32 = 0
+        if f.contains(.control) { mods |= Shortcut.control }
+        if f.contains(.option) { mods |= Shortcut.option }
+        if f.contains(.shift) { mods |= Shortcut.shift }
+        if f.contains(.command) { mods |= Shortcut.command }
+        let s = Shortcut(keyCode: Int(e.keyCode), modifiers: mods)
+        guard s.isValid else { message = "Hold ⌃, ⌥ or ⌘ and press a letter, number or arrow key."; return }
+        if let other = store.shortcuts.conflict(for: s, action: action) { message = "\(s.display) is already used for “\(other.title)”."; return }
+        store.shortcuts[action] = s
+        message = nil
+        stop()
+    }
+
+    deinit { if let m = monitor { NSEvent.removeMonitor(m) } }
+}
+
 struct SettingsView: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var items: ItemsModel
     @StateObject private var model: PaneModel
+    @StateObject private var recorder: RecorderModel
     init(store: SettingsStore, items: ItemsModel, initialPane: Pane = .general) {
         self.store = store; self.items = items
         _model = StateObject(wrappedValue: PaneModel(initialPane))
+        _recorder = StateObject(wrappedValue: RecorderModel(store: store))
     }
     private var pane: Pane { model.pane }
 
@@ -61,7 +102,8 @@ struct SettingsView: View {
         .background { ZStack { if !Theme.snapshot { Glass(material: Theme.style.material) }; Theme.glow }.ignoresSafeArea() }
         .environment(\.colorScheme, Theme.scheme)
         .onAppear { if !Theme.snapshot { items.refresh() } }
-        .id(store.themeName)   // rebuild every surface when the theme changes
+        .id(store.themeName)
+        .onDisappear { recorder.stop() }   // rebuild every surface when the theme changes
     }
 
     @ViewBuilder private func scrolling<C: View>(@ViewBuilder _ content: () -> C) -> some View {
@@ -121,7 +163,7 @@ struct SettingsView: View {
                     Sep()
                     ToggleRow(title: "Open at login", subtitle: store.loginError ?? "Start Frost when you log in.", isOn: $store.launchAtLogin)
                     Sep()
-                    ToggleRow(title: "Presenting mode", subtitle: "Keep everything hidden, for screen sharing. ⌃⌥P toggles it.", isOn: $store.presenting)
+                    ToggleRow(title: "Presenting mode", subtitle: "Keep everything hidden, for screen sharing. \(store.shortcuts[.presenting].display) toggles it.", isOn: $store.presenting)
                     Sep()
                     ToggleRow(title: "Hide items at launch", subtitle: "Start with everything left of the divider hidden.", isOn: $store.hideOnLaunch)
                 }
@@ -272,20 +314,26 @@ struct SettingsView: View {
         Block(title: "Shortcuts") {
             Card {
                 ToggleRow(title: "Enable global shortcuts", subtitle: "Turn off if they clash with another app.", isOn: $store.shortcutsEnabled)
-                Sep()
-                shortcut("Show or hide items", "⌃⌥H")
-                Sep()
-                shortcut("Search menu bar items", "⌃⌥Space")
-                Sep()
-                shortcut("Presenting mode", "⌃⌥P")
+                ForEach(ShortcutAction.allCases, id: \.self) { a in
+                    Sep()
+                    Row(title: a.title, subtitle: store.shortcutsEnabled && store.shortcutFailures.contains(a) ? "Another app already uses this shortcut. Choose a different one." : nil) {
+                        HStack(spacing: 8) {
+                            Button(recorder.recording == a ? "Press keys…" : store.shortcuts[a].display) {
+                                if recorder.recording == a { recorder.stop() } else { recorder.start(a) }
+                            }
+                            .buttonStyle(ControlButton(primary: recorder.recording == a))
+                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                            .accessibilityLabel("\(a.title) shortcut, \(store.shortcuts[a].display). Press to change.")
+                            if store.shortcuts[a] != a.defaultShortcut {
+                                Button("Reset") { recorder.stop(); store.shortcuts[a] = a.defaultShortcut }.buttonStyle(ControlButton())
+                            }
+                        }
+                    }
+                }
             }
-            Note("Search lists every item, hidden or not. Type to filter, ↑ ↓ to choose, Return to click it, Esc to close. Clicking needs Accessibility access.")
+            if let m = recorder.message { Note(m) }
+            Note("Click a shortcut, then press the new keys. Esc cancels. Search lists every item, hidden or not: type to filter, ↑ ↓ to choose, Return to click it, Esc to close. Clicking needs Accessibility access.")
         }
-    }
-
-    private func shortcut(_ title: String, _ keys: String) -> some View {
-        Row(title: title) { Text(keys).font(.system(size: 13, weight: .medium, design: .monospaced)).foregroundStyle(Theme.ink)
-            .padding(.horizontal, 10).frame(height: Control.height).background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius)) }
     }
 
     private var about: some View {

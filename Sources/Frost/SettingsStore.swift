@@ -9,7 +9,10 @@ final class SettingsStore: ObservableObject {
     @Published var themeName: String { didSet { defaults.set(themeName, forKey: "themeName"); Theme.style = Style.named(themeName) } }
     @Published var autoHide: AutoHide { didSet { defaults.set(autoHide.rawValue, forKey: "autoHide"); onAutoHideChange?() } }
     @Published var revealMode: RevealMode { didSet { defaults.set(revealMode.rawValue, forKey: "revealMode") } }
-    @Published var shortcutsEnabled: Bool { didSet { defaults.set(shortcutsEnabled, forKey: "shortcutsEnabled") } }
+    @Published var shortcutsEnabled: Bool { didSet { defaults.set(shortcutsEnabled, forKey: "shortcutsEnabled"); onShortcutsChange?() } }
+    @Published var shortcuts: ShortcutSet { didSet { defaults.set(try? JSONEncoder().encode(shortcuts), forKey: "shortcuts"); onShortcutsChange?() } }
+    /// Shortcuts the system refused to register (usually another app already uses them). Set by the app delegate.
+    @Published var shortcutFailures: Set<ShortcutAction> = []
     /// Whether the first-run setup has been shown.
     @Published var didOnboard: Bool { didSet { defaults.set(didOnboard, forKey: "didOnboard") } }
     @Published var hideOnLaunch: Bool { didSet { defaults.set(hideOnLaunch, forKey: "hideOnLaunch") } }
@@ -21,6 +24,7 @@ final class SettingsStore: ObservableObject {
     @Published var launchAtLogin: Bool { didSet { if !syncingLogin { setLoginItem(launchAtLogin) } } }
     @Published var loginError: String?
 
+    var onShortcutsChange: (() -> Void)?
     var onHiddenChange: (() -> Void)?
     /// Opens the first-run setup again; set by the app delegate.
     var showSetup: (() -> Void)?
@@ -35,6 +39,7 @@ final class SettingsStore: ObservableObject {
         autoHide = AutoHide(rawValue: defaults.object(forKey: "autoHide") as? Int ?? AutoHide.tenSeconds.rawValue) ?? .tenSeconds
         revealMode = RevealMode(rawValue: defaults.object(forKey: "revealMode") as? Int ?? 0) ?? .inline
         shortcutsEnabled = defaults.object(forKey: "shortcutsEnabled") as? Bool ?? true
+        shortcuts = defaults.data(forKey: "shortcuts").flatMap { try? JSONDecoder().decode(ShortcutSet.self, from: $0) } ?? ShortcutSet()
         didOnboard = defaults.object(forKey: "didOnboard") as? Bool ?? false
         hideOnLaunch = defaults.object(forKey: "hideOnLaunch") as? Bool ?? true
         hiddenBundleIDs = Set(defaults.stringArray(forKey: "hiddenBundleIDs") ?? [])

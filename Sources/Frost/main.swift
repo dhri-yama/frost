@@ -1,6 +1,6 @@
 import AppKit
 import SwiftUI
-import Carbon.HIToolbox
+import FrostCore
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let store = SettingsStore()
@@ -24,14 +24,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         items.needsInstall = menuBar.needsInstall
         items.hiddenBundleIDs = { [unowned self] in store.hiddenBundleIDs }
         search = SearchController(items: items) { [unowned self] row in menuBar.activate(row) }
-        hotkeys.register(key: kVK_ANSI_H) { [unowned self] in if store.shortcutsEnabled { menuBar.toggleFromShortcut() } }
-        hotkeys.register(key: kVK_Space) { [unowned self] in if store.shortcutsEnabled { search.toggle() } }
-        hotkeys.register(key: kVK_ANSI_P) { [unowned self] in if store.shortcutsEnabled { store.presenting.toggle() } }
+        store.onShortcutsChange = { [unowned self] in registerShortcuts() }
+        registerShortcuts()
         menuBar.openSearch = { [unowned self] in search.show() }
         menuBar.openSettings = { [weak self] in self?.showSettings() }
         store.showSetup = { [weak self] in self?.showOnboarding() }
         if CommandLine.arguments.contains("--settings") { showSettings() }
         else if !store.didOnboard { showOnboarding() }
+    }
+
+    /// Registers the three global shortcuts from the settings (none when shortcuts are switched off) and records any the
+    /// system refused so Settings can say so.
+    func registerShortcuts() {
+        let run: [ShortcutAction: () -> Void] = [
+            .toggle: { [unowned self] in menuBar.toggleFromShortcut() },
+            .search: { [unowned self] in search.toggle() },
+            .presenting: { [unowned self] in store.presenting.toggle() },
+        ]
+        let bindings = store.shortcutsEnabled ? ShortcutAction.allCases.map { (action: $0, shortcut: store.shortcuts[$0], run: run[$0]!) } : []
+        let failed = hotkeys.set(bindings)
+        if failed != store.shortcutFailures { store.shortcutFailures = failed }
     }
 
     func applicationWillTerminate(_ notification: Notification) { menuBar.release() }
@@ -46,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         w.appearance = Theme.appearance
         let finish: () -> Void = { [weak self] in self?.store.didOnboard = true; self?.onboardingWindow?.close(); self?.onboardingWindow = nil }
         w.contentView = NSHostingView(rootView: OnboardingView(
-            items: items,
+            items: items, store: store,
             moveChevron: { [weak self] done in self?.menuBar.moveChevronToRightEdge(done: done) },
             openSettings: { [weak self] in self?.showSettings() },
             finish: finish))

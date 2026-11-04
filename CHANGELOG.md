@@ -6,6 +6,13 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Added
+- Shortcut recorder: Settings → Keys lets you click a shortcut and press the new keys for each of show or hide, search and presenting mode. Esc cancels; a Reset button appears for changed ones. Shortcuts need ⌃, ⌥ or ⌘ and a known key, and cannot repeat another action's shortcut. If the system refuses one (another app owns it) the row says so.
+- `Shortcut`, `ShortcutAction` and `ShortcutSet` in `FrostCore`, with tests. Old settings keep the defaults.
+
+### Changed
+- Shortcuts are registered again whenever they change, instead of once at launch. Places that mentioned a shortcut (presenting mode, setup) now show the current one.
+
 ## [0.13.0] - 2026-11-05
 
 ### Added
