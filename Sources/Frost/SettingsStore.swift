@@ -20,6 +20,9 @@ final class SettingsStore: ObservableObject {
     /// Presenting mode keeps everything hidden until switched off. Deliberately not saved: it never survives a relaunch.
     /// Apps whose menu bar items are hidden (macOS 27 allow-list). Stored by bundle identifier.
     @Published var hiddenBundleIDs: Set<String> { didSet { defaults.set(hiddenBundleIDs.sorted(), forKey: "hiddenBundleIDs"); onHiddenChange?() } }
+    /// `.chosen`: hide the apps in `hiddenBundleIDs`. `.allExcept`: hide every running app not in `keepVisibleBundleIDs`.
+    @Published var hideMode: HideMode { didSet { defaults.set(hideMode.rawValue, forKey: "hideMode"); onHiddenChange?() } }
+    @Published var keepVisibleBundleIDs: Set<String> { didSet { defaults.set(keepVisibleBundleIDs.sorted(), forKey: "keepVisibleBundleIDs"); onHiddenChange?() } }
     @Published var presenting = false { didSet { onPresentingChange?() } }
     @Published var launchAtLogin: Bool { didSet { if !syncingLogin { setLoginItem(launchAtLogin) } } }
     @Published var loginError: String?
@@ -43,13 +46,28 @@ final class SettingsStore: ObservableObject {
         didOnboard = defaults.object(forKey: "didOnboard") as? Bool ?? false
         hideOnLaunch = defaults.object(forKey: "hideOnLaunch") as? Bool ?? true
         hiddenBundleIDs = Set(defaults.stringArray(forKey: "hiddenBundleIDs") ?? [])
+        hideMode = HideMode(rawValue: defaults.object(forKey: "hideMode") as? Int ?? 0) ?? .chosen
+        keepVisibleBundleIDs = Set(defaults.stringArray(forKey: "keepVisibleBundleIDs") ?? [])
         profiles = defaults.data(forKey: "profiles").flatMap { try? JSONDecoder().decode([Profile].self, from: $0) } ?? []
         launchAtLogin = SMAppService.mainApp.status == .enabled
         Theme.style = Style.named(name)
     }
 
-    func toggleHidden(_ bundleID: String) {
-        if hiddenBundleIDs.contains(bundleID) { hiddenBundleIDs.remove(bundleID) } else { hiddenBundleIDs.insert(bundleID) }
+    /// The bundle identifiers to hide right now, which depends on the mode and, in `.allExcept`, on what is running.
+    func effectiveHidden() -> Set<String> {
+        let running = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
+        let never = Set([Bundle.main.bundleIdentifier].compactMap { $0 })
+        return HiddenResolver.hidden(mode: hideMode, chosen: hideMode == .chosen ? hiddenBundleIDs : keepVisibleBundleIDs, running: running, neverHide: never)
+    }
+
+    /// Hides or shows an app, whichever mode is on (in `.allExcept` mode "hide" means taking it off the keep-visible list).
+    func setHidden(_ bundleID: String, _ hidden: Bool) {
+        switch hideMode {
+        case .chosen:
+            if hidden { hiddenBundleIDs.insert(bundleID) } else { hiddenBundleIDs.remove(bundleID) }
+        case .allExcept:
+            if hidden { keepVisibleBundleIDs.remove(bundleID) } else { keepVisibleBundleIDs.insert(bundleID) }
+        }
     }
 
     private func setLoginItem(_ on: Bool) {

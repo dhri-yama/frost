@@ -68,6 +68,7 @@ final class MenuBarController: NSObject {
         self.store = store
         self.items = items
         let r = try? MenuBarRestriction()
+        r?.onFailure = { [weak items] message in DispatchQueue.main.async { items?.restrictionError = message } }
         let inApplications = Bundle.main.bundlePath.hasPrefix("/Applications/")
         let os = ProcessInfo.processInfo.operatingSystemVersion.majorVersion
         restriction = r
@@ -95,15 +96,16 @@ final class MenuBarController: NSObject {
     /// Collapsed means the allow-list is active; expanded means it is lifted. A no-op for the divider method.
     private func reapplyRestriction() {
         guard method == .allowList, let restriction else { return }
-        if state.collapsed { restriction.apply(hidden: store.hiddenBundleIDs) } else { restriction.release() }
+        if state.collapsed { restriction.apply(hidden: store.effectiveHidden()) } else { restriction.release() }
     }
 
     /// Clicks an item. With the allow-list a hidden app's icon is not in the menu bar, so it is let back for a moment first.
     func activate(_ row: ItemRow) {
-        guard method == .allowList, state.collapsed, let bundle = row.item.bundleID, store.hiddenBundleIDs.contains(bundle) else {
+        let hidden = store.effectiveHidden()
+        guard method == .allowList, state.collapsed, let bundle = row.item.bundleID, hidden.contains(bundle) else {
             AccessibilityScan.press(id: row.id); return
         }
-        restriction?.apply(hidden: store.hiddenBundleIDs.subtracting([bundle]))
+        restriction?.apply(hidden: hidden.subtracting([bundle]))
         // Give the system a moment to lay the icon out; then click it (needs Accessibility), else the user clicks it.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { AccessibilityScan.press(id: row.id) }
         rehideTimer?.invalidate()

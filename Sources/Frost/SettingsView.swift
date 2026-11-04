@@ -176,6 +176,21 @@ struct SettingsView: View {
 
     private var layout: some View {
         VStack(alignment: .leading, spacing: 28) {
+            if let e = items.restrictionError, items.method == .allowList {
+                Block(title: "Hiding") {
+                    Row(title: "macOS refused to hide apps", subtitle: e) { EmptyView() }
+                    Note("Frost cannot hide anything right now. Quit and reopen Frost. If it keeps happening, tell the developer which macOS version you have.")
+                }
+            }
+            if items.method == .allowList {
+                Block(title: "What to hide") {
+                    MenuRow(title: "Hide", subtitle: store.hideMode == .chosen
+                                ? "Only the apps you press Hide on."
+                                : "Every app except the ones you press Show on, including apps you open later.",
+                            selection: Binding(get: { store.hideMode }, set: { store.hideMode = $0; items.refresh() }),
+                            options: HideMode.allCases.map { ($0, $0.label) })
+                }
+            }
             if items.needsInstall {
                 Block(title: "Install") {
                     Row(title: "Move Frost to Applications",
@@ -241,7 +256,7 @@ struct SettingsView: View {
     /// With the allow-list, hiding is a setting on the app; with the divider, it is a drag across it.
     private func toggle(_ r: ItemRow, hidden: Bool) {
         if items.method == .allowList, let id = r.item.bundleID {
-            store.toggleHidden(id)
+            store.setHidden(id, !hidden)
             items.refresh()
         } else {
             items.move(r, toHidden: !hidden)
@@ -296,6 +311,7 @@ struct SettingsView: View {
 
     private func applyProfile(_ p: Profile) {
         if items.method == .allowList {
+            store.hideMode = .chosen
             store.hiddenBundleIDs = Set(p.hiddenBundleIDs)
             items.refresh()
         } else {
@@ -344,7 +360,8 @@ struct SettingsView: View {
                 }
                 Sep()
                 Row(title: "Hiding method", subtitle: items.method == .allowList
-                        ? "System allow-list (private macOS API). Hides whole apps; the Focus and camera indicators are hidden while it is on."
+                        ? (items.restrictionError == nil ? "System allow-list (private macOS API): working. " : "System allow-list (private macOS API): macOS refused the last request. ")
+                            + "Hides whole apps; the Focus and camera indicators are hidden while it is on."
                         : "Divider. Icons left of the divider are pushed off the edge of the menu bar.") { EmptyView() }
                 Sep()
                 Row(title: "Setup", subtitle: "The first-run walkthrough: install location, chevron placement and Accessibility.") {

@@ -22,6 +22,8 @@ final class ItemsModel: ObservableObject {
     /// How hiding works here, and whether Frost must be moved to /Applications first. Set by the app delegate.
     @Published var method: HideMethod = .divider
     @Published var needsInstall = false
+    /// The system's error if it refused the latest allow-list; nil when hiding is working.
+    @Published var restrictionError: String?
     var hiddenBundleIDs: () -> Set<String> = { [] }
     @Published var moving = false
     @Published var moveFailed = false

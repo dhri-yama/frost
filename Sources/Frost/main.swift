@@ -22,7 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         items.ownWindowIDs = { [unowned self] in menuBar.ownWindowIDs }
         items.method = menuBar.method
         items.needsInstall = menuBar.needsInstall
-        items.hiddenBundleIDs = { [unowned self] in store.hiddenBundleIDs }
+        items.hiddenBundleIDs = { [unowned self] in store.effectiveHidden() }
         search = SearchController(items: items) { [unowned self] row in menuBar.activate(row) }
         store.onShortcutsChange = { [unowned self] in registerShortcuts() }
         registerShortcuts()

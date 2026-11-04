@@ -28,6 +28,8 @@ final class MenuBarRestriction {
     private var assertion: NSObject?
     private var list = AllowList()
     private(set) var failure: String?
+    /// Called (on the main queue) when an allow-list is activated: nil on success, or the system's error message.
+    var onFailure: ((String?) -> Void)?
 
     var isActive: Bool { assertion != nil }
 
@@ -63,6 +65,7 @@ final class MenuBarRestriction {
             DispatchQueue.main.async {
                 guard let self, self.assertion === new else { return }
                 if let error { self.failure = String(describing: error); self.list.clear() } else { self.failure = nil }
+                self.onFailure?(self.failure)
             }
         }
         _ = new.perform(NSSelectorFromString("activateWithConfiguration:completionHandler:"), with: configuration, with: done)
