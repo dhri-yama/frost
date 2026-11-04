@@ -108,6 +108,9 @@ struct SettingsView: View {
             }
             Block(title: "Hiding") {
                 Card {
+                    MenuRow(title: "Show hidden items", subtitle: "A panel needs Accessibility access to click the items for you.",
+                            selection: $store.revealMode, options: RevealMode.allCases.map { ($0, $0.label) })
+                    Sep()
                     MenuRow(title: "Hide items again", subtitle: "How long revealed items stay visible.",
                             selection: $store.autoHide, options: AutoHide.allCases.map { ($0, $0.label) })
                     Sep()

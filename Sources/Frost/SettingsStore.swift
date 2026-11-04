@@ -7,6 +7,7 @@ final class SettingsStore: ObservableObject {
 
     @Published var themeName: String { didSet { defaults.set(themeName, forKey: "themeName"); Theme.style = Style.named(themeName) } }
     @Published var autoHide: AutoHide { didSet { defaults.set(autoHide.rawValue, forKey: "autoHide"); onAutoHideChange?() } }
+    @Published var revealMode: RevealMode { didSet { defaults.set(revealMode.rawValue, forKey: "revealMode") } }
     @Published var hideOnLaunch: Bool { didSet { defaults.set(hideOnLaunch, forKey: "hideOnLaunch") } }
 
     var onAutoHideChange: (() -> Void)?
@@ -15,6 +16,7 @@ final class SettingsStore: ObservableObject {
         let name = defaults.string(forKey: "themeName") ?? Style.frost.name
         themeName = name
         autoHide = AutoHide(rawValue: defaults.object(forKey: "autoHide") as? Int ?? AutoHide.tenSeconds.rawValue) ?? .tenSeconds
+        revealMode = RevealMode(rawValue: defaults.object(forKey: "revealMode") as? Int ?? 0) ?? .inline
         hideOnLaunch = defaults.object(forKey: "hideOnLaunch") as? Bool ?? true
         Theme.style = Style.named(name)
     }

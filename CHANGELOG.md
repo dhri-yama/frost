@@ -6,6 +6,20 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-05
+
+### Added
+- Second-bar panel: hidden items appear as icon tiles in a themed glass panel under the menu bar, right-aligned to Frost's toggle and clamped inside the screen. Clicking a tile clicks the real item (Accessibility), Esc or a click elsewhere closes it, and it never steals focus.
+- "Show hidden items" setting (in the menu bar, or in a panel below it). The default stays in the menu bar.
+- Panel geometry and reveal mode in `FrostCore`, with tests.
+- Panel snapshots for every theme.
+
+### Changed
+- The panel shows app icons and names from the scan rather than captured images, so it needs no Screen Recording permission. Capturing the real icon images is deferred.
+
+### Known issues
+- The panel and AXPress clicking have not been tried on a real menu bar yet (they depend on the Accessibility scan from 0.4.0).
+
 ## [0.4.0] - 2026-11-05
 
 ### Added

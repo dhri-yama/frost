@@ -7,6 +7,17 @@ import FrostCore
 enum AccessibilityScan {
     static var trusted: Bool { AXIsProcessTrusted() }
 
+    /// Elements from the latest scan, keyed by item id, so the panel can click an item later.
+    private static var elements: [Int: AXUIElement] = [:]
+    private static let lock = NSLock()
+
+    /// Clicks an item found by the latest scan (AXPress). Returns false if the item is gone or the app refused.
+    @discardableResult static func press(id: Int) -> Bool {
+        lock.lock(); let el = elements[id]; lock.unlock()
+        guard let el else { return false }
+        return AXUIElementPerformAction(el, kAXPressAction as CFString) == .success
+    }
+
     /// Shows the system's Accessibility prompt (once; afterwards it only opens nothing, so also offer `openSettings`).
     static func requestTrust() {
         _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
@@ -20,6 +31,7 @@ enum AccessibilityScan {
     static func scan() -> [MenuBarItem] {
         guard trusted else { return [] }
         var out: [MenuBarItem] = []
+        var found: [Int: AXUIElement] = [:]
         for app in NSWorkspace.shared.runningApplications where app.activationPolicy != .prohibited {
             let root = AXUIElementCreateApplication(app.processIdentifier)
             AXUIElementSetMessagingTimeout(root, 0.25)   // a hung app must not stall the whole scan
@@ -30,10 +42,12 @@ enum AccessibilityScan {
             for (i, child) in (kids as? [AXUIElement] ?? []).enumerated() {
                 guard let p = point(child, kAXPositionAttribute), let s = size(child) else { continue }
                 let title = string(child, kAXTitleAttribute) ?? string(child, kAXDescriptionAttribute)
+                found[Int(app.processIdentifier) * 1000 + i] = child
                 out.append(MenuBarItem(windowID: Int(app.processIdentifier) * 1000 + i, pid: Int(app.processIdentifier),
                                        ownerName: app.localizedName ?? "Unknown", minX: Double(p.x), width: Double(s.width), title: title))
             }
         }
+        lock.lock(); elements = found; lock.unlock()
         return out.sorted { $0.minX < $1.minX }
     }
 

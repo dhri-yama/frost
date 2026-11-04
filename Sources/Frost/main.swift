@@ -8,7 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        menuBar = MenuBarController(store: store)
+        menuBar = MenuBarController(store: store, items: items)
         items.dividerWindowID = { [unowned self] in menuBar.dividerWindowID }
         items.dividerMinX = { [unowned self] in menuBar.dividerMinX }
         items.ownWindowIDs = { [unowned self] in menuBar.ownWindowIDs }
