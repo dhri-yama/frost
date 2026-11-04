@@ -5,14 +5,26 @@ public struct Profile: Codable, Equatable, Identifiable {
     public let id: String
     public var name: String
     public var hiddenOwners: [String]
+    /// Bundle identifiers of the hidden apps. macOS 27 hides by these; older profiles have none.
+    public var hiddenBundleIDs: [String]
 
-    public init(id: String = UUID().uuidString, name: String, hiddenOwners: [String]) {
-        self.id = id; self.name = name; self.hiddenOwners = hiddenOwners
+    public init(id: String = UUID().uuidString, name: String, hiddenOwners: [String], hiddenBundleIDs: [String] = []) {
+        self.id = id; self.name = name; self.hiddenOwners = hiddenOwners; self.hiddenBundleIDs = hiddenBundleIDs
+    }
+
+    // Profiles saved before 0.10.0 have no `hiddenBundleIDs`, so decode it as optional.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        hiddenOwners = try c.decode([String].self, forKey: .hiddenOwners)
+        hiddenBundleIDs = try c.decodeIfPresent([String].self, forKey: .hiddenBundleIDs) ?? []
     }
 
     /// Records the apps whose items are currently hidden.
     public static func capturing(name: String, hidden: [MenuBarItem]) -> Profile {
-        Profile(name: name, hiddenOwners: Array(Set(hidden.map(\.ownerName))).sorted())
+        Profile(name: name, hiddenOwners: Array(Set(hidden.map(\.ownerName))).sorted(),
+                hiddenBundleIDs: Array(Set(hidden.compactMap(\.bundleID))).sorted())
     }
 }
 

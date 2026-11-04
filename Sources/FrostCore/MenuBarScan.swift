@@ -8,12 +8,14 @@ public struct MenuBarItem: Equatable, Identifiable {
     public let minX: Double, width: Double
     /// Accessibility title or description, when the Accessibility scan supplied one.
     public let title: String?
+    /// The owning app's bundle identifier, when known. macOS 27 hides menu bar items per app, by this identifier.
+    public let bundleID: String?
 
     public var id: Int { windowID }
     public var maxX: Double { minX + width }
 
-    public init(windowID: Int, pid: Int, ownerName: String, minX: Double, width: Double, title: String? = nil) {
-        self.windowID = windowID; self.pid = pid; self.ownerName = ownerName; self.minX = minX; self.width = width; self.title = title
+    public init(windowID: Int, pid: Int, ownerName: String, minX: Double, width: Double, title: String? = nil, bundleID: String? = nil) {
+        self.windowID = windowID; self.pid = pid; self.ownerName = ownerName; self.minX = minX; self.width = width; self.title = title; self.bundleID = bundleID
     }
 }
 
@@ -53,6 +55,14 @@ public enum MenuBarScan {
         let others = items.filter { $0.pid != ownPID }
         guard let x = dividerMinX else { return (others, []) }
         return (others.filter { $0.minX >= x }, others.filter { $0.minX < x })
+    }
+
+    /// Splits items by app: those whose bundle identifier is in `hiddenBundleIDs` are hidden. Items owned by `ownPID`
+    /// (Frost's own) are left out. Used on macOS 27, where hiding is per app and has no position.
+    public static func group(_ items: [MenuBarItem], hiddenBundleIDs: Set<String>, ownPID: Int) -> (visible: [MenuBarItem], hidden: [MenuBarItem]) {
+        let others = items.filter { $0.pid != ownPID }
+        let isHidden: (MenuBarItem) -> Bool = { $0.bundleID.map(hiddenBundleIDs.contains) ?? false }
+        return (others.filter { !isHidden($0) }, others.filter(isHidden))
     }
 
     private static func num(_ any: Any?) -> Double? { (any as? NSNumber)?.doubleValue }
