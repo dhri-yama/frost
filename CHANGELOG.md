@@ -6,6 +6,9 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+### Added
+- Landing page in `website/` (Next.js, static export): a black, neon-lit bar with a working demo menu bar at the top. It is not part of the app or the DMG, and reads the version from `VERSION`.
+
 ## [0.16.0] - 2026-11-05
 
 ### Added

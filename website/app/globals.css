@@ -1,0 +1,396 @@
+/* Frost: one theme, black. Cold neon (the app's ice) and a warm lamp, on a bar at night. */
+
+:root {
+  --black: #000;
+  --ink: #ece7df;
+  --soft: rgba(236, 231, 223, 0.78);
+  --dim: #9b9588;
+  --neon: #8fe3ff;
+  --neon-deep: #3ab7e0;
+  --lamp: #ffb35c;
+  --line: rgba(236, 231, 223, 0.13);
+  --signage: var(--font-signage), "Arial Narrow", "Helvetica Neue", sans-serif;
+  --text: var(--font-menu), Georgia, serif;
+  --script: var(--font-neon), "Snell Roundhand", cursive;
+  --wrap: 1180px;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; overflow-x: clip; }
+body {
+  margin: 0;
+  overflow-x: clip;
+  background: var(--black);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 19px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, p, ul, ol, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; height: auto; }
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--neon);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.textlink {
+  color: var(--lamp);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.textlink:hover { color: #ffd199; }
+
+/* ---------- The menu bar at the top (a working demo) ---------- */
+
+.menubar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  padding: 0 14px;
+  background: rgba(0, 0, 0, 0.74);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--signage);
+}
+.menubar__skip {
+  position: absolute;
+  left: 12px; top: 44px;
+  padding: 8px 14px;
+  background: var(--black);
+  border: 1px solid var(--neon);
+  border-radius: 8px;
+  color: var(--ink);
+  transform: translateY(-200%);
+}
+.menubar__skip:focus { transform: none; }
+.menubar__left { display: flex; align-items: center; min-width: 0; }
+.menubar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink);
+  font-size: 19px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.menubar__brand svg { color: var(--neon); filter: drop-shadow(0 0 5px rgba(143, 227, 255, 0.7)); }
+.menubar__nav { display: flex; gap: 2px; margin-left: 20px; }
+.menubar__link {
+  padding: 3px 10px;
+  border-radius: 6px;
+  color: var(--soft);
+  font-size: 17px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.menubar__link:hover { background: rgba(255, 255, 255, 0.09); color: var(--ink); }
+
+.status { display: flex; align-items: center; color: rgba(236, 231, 223, 0.88); }
+.status__group {
+  display: flex;
+  max-width: 260px;
+  overflow: hidden;
+  opacity: 1;
+  transition: max-width 0.38s cubic-bezier(0.3, 0.7, 0.2, 1), opacity 0.25s ease;
+}
+.status__group.is-hidden { max-width: 0; opacity: 0; }
+.status__icon { display: inline-flex; flex: none; align-items: center; padding: 6px 7px; }
+.status__chevron {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--neon);
+  cursor: pointer;
+  filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.65));
+  transform: rotate(180deg);
+  transition: transform 0.3s ease, background 0.15s;
+}
+.status__chevron.is-collapsed { transform: rotate(0); }
+.status__chevron:hover { background: rgba(255, 255, 255, 0.09); }
+.status__clock { padding: 0 4px 0 9px; font-size: 17px; font-weight: 500; white-space: nowrap; }
+
+/* ---------- Hero: the sign ---------- */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: clamp(40px, 8vw, 104px) 24px clamp(88px, 12vw, 148px);
+}
+/* Wall light behind the sign (cold) and the lamp (warm). Full width, behind everything. */
+.hero::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -36px;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  background:
+    radial-gradient(52% 58% at 24% 26%, rgba(58, 183, 224, 0.2), transparent 70%),
+    radial-gradient(34% 40% at 93% 4%, rgba(255, 179, 92, 0.14), transparent 70%);
+}
+/* The lip of the bar: a thin line of lamplight along the bottom of the hero. */
+.hero::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  height: 2px;
+  margin-left: -50vw;
+  background: linear-gradient(90deg, transparent, rgba(255, 179, 92, 0.75) 18%, rgba(255, 179, 92, 0.75) 82%, transparent);
+  box-shadow: 0 0 24px 2px rgba(255, 179, 92, 0.32);
+}
+/* A pendant lamp over the bar. Decoration only; it sits behind the text and is hidden on narrow screens. */
+.lamp {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: clamp(24px, 8vw, 140px);
+  width: 190px;
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+}
+.lamp__cone { filter: blur(5px); }
+.hero__sign { margin-bottom: clamp(8px, 2vw, 22px); }
+.neon {
+  display: inline-block;
+  padding-right: 0.1em;
+  color: #f4fdff;
+  font-family: var(--script);
+  font-size: clamp(120px, 24vw, 300px);
+  line-height: 0.8;
+  transform: rotate(-4deg);
+  transform-origin: left bottom;
+  text-shadow:
+    0 0 3px #fff,
+    0 0 10px var(--neon),
+    0 0 24px var(--neon-deep),
+    0 0 56px rgba(58, 183, 224, 0.75),
+    0 0 110px rgba(58, 183, 224, 0.42);
+  animation: neon-on 1.5s linear 0.25s both;
+}
+/* The sign switches on once: a few stutters, then steady. */
+@keyframes neon-on {
+  0% { opacity: 0.04; }
+  8% { opacity: 0.9; }
+  11% { opacity: 0.08; }
+  20% { opacity: 1; }
+  24% { opacity: 0.15; }
+  30% { opacity: 1; }
+  100% { opacity: 1; }
+}
+.hero__title {
+  max-width: 15ch;
+  margin-bottom: 24px;
+  font-family: var(--signage);
+  font-size: clamp(46px, 8.4vw, 108px);
+  font-weight: 800;
+  line-height: 0.94;
+}
+.hero__lede { max-width: 33em; margin-bottom: 38px; color: var(--soft); font-size: clamp(20px, 2.2vw, 24px); }
+.hero__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 30px; }
+.hero__hint { margin-top: 46px; color: var(--dim); font-size: 17px; font-style: italic; }
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  padding: 13px 28px;
+  border: 1.5px solid var(--neon);
+  border-radius: 999px;
+  color: #eafcff;
+  font-family: var(--signage);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-shadow: 0 0 8px rgba(143, 227, 255, 0.75);
+  box-shadow: 0 0 14px rgba(58, 183, 224, 0.45), inset 0 0 14px rgba(58, 183, 224, 0.22);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, text-shadow 0.2s;
+}
+.button:hover {
+  background: var(--neon);
+  color: #00161d;
+  text-shadow: none;
+  box-shadow: 0 0 30px rgba(58, 183, 224, 0.75);
+}
+
+/* ---------- Sections ---------- */
+
+.section {
+  max-width: var(--wrap);
+  margin: 0 auto;
+  padding: clamp(72px, 10vw, 128px) 24px 0;
+  scroll-margin-top: 44px;
+}
+.section__title {
+  margin-bottom: 16px;
+  font-family: var(--signage);
+  font-size: clamp(38px, 5.6vw, 66px);
+  font-weight: 800;
+  line-height: 1;
+}
+.section__lede { max-width: 30em; color: var(--dim); font-size: 20px; }
+
+/* ---------- On the menu ---------- */
+
+.menu { display: grid; grid-template-columns: minmax(240px, 360px) 1fr; gap: clamp(32px, 7vw, 100px); align-items: start; }
+.menu__intro { position: sticky; top: 84px; }
+.menu__list { display: grid; gap: 32px; }
+.menu__row { display: flex; align-items: baseline; gap: 12px; }
+.menu__name { font-family: var(--signage); font-size: 29px; font-weight: 700; line-height: 1.1; }
+.menu__leader { flex: 1; min-width: 24px; border-bottom: 2px dotted rgba(255, 179, 92, 0.45); transform: translateY(-5px); }
+.menu__tag { max-width: 13em; color: var(--lamp); font-size: 18px; font-style: italic; text-align: right; }
+.menu__text { max-width: 34em; margin-top: 6px; color: var(--soft); font-size: 18.5px; }
+
+/* ---------- Behind the counter ---------- */
+
+.counter__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 38px; }
+.themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+.shot img,
+.theme img {
+  width: 100%;
+  aspect-ratio: 6 / 5;
+  object-fit: cover;
+  border: 1px solid rgba(143, 227, 255, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px #000, 0 24px 60px rgba(58, 183, 224, 0.1);
+}
+.shot figcaption,
+.theme figcaption { margin-top: 10px; color: var(--dim); font-size: 16px; font-style: italic; }
+.counter__note { margin-top: 22px; color: var(--dim); font-size: 15px; }
+
+/* ---------- House rules ---------- */
+
+.board {
+  padding: clamp(28px, 5vw, 64px);
+  border: 1px solid rgba(255, 179, 92, 0.5);
+  border-radius: 6px;
+  outline: 1px solid rgba(255, 179, 92, 0.2);
+  outline-offset: 9px;
+  box-shadow: 0 0 44px rgba(255, 179, 92, 0.08), inset 0 0 44px rgba(255, 179, 92, 0.05);
+}
+.board__list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px clamp(28px, 6vw, 72px); margin-top: 42px; }
+.board__item { padding-top: 16px; border-top: 1px solid var(--line); }
+.board__rule { margin-bottom: 6px; font-family: var(--signage); font-size: 25px; font-weight: 700; line-height: 1.15; }
+.board__text { color: var(--soft); font-size: 17.5px; }
+
+/* ---------- Install ---------- */
+
+.steps { display: grid; gap: 30px; max-width: 720px; margin-top: 38px; counter-reset: step; }
+.steps__item { position: relative; padding-left: 74px; counter-increment: step; }
+.steps__item::before {
+  content: counter(step);
+  position: absolute;
+  top: -4px;
+  left: 0;
+  color: var(--lamp);
+  font-family: var(--signage);
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(255, 179, 92, 0.45);
+}
+.steps__lead { margin-bottom: 4px; font-family: var(--signage); font-size: 27px; font-weight: 700; line-height: 1.15; }
+.steps__text { color: var(--soft); font-size: 18.5px; }
+.install__brew { max-width: 840px; margin-top: 52px; }
+.install__label { margin-bottom: 10px; color: var(--dim); font-style: italic; }
+
+.command { display: flex; align-items: stretch; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #0a0a0a; }
+.command__text {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  color: var(--neon);
+  font: 14.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Wrap rather than scroll, so the whole command is always visible. */
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.command__copy {
+  min-width: 150px;
+  padding: 0 20px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--signage);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.command__copy:hover { background: rgba(255, 255, 255, 0.07); }
+
+/* ---------- Footer ---------- */
+
+.footer { max-width: var(--wrap); margin: clamp(88px, 12vw, 160px) auto 0; padding: 40px 24px 60px; border-top: 1px solid var(--line); }
+.footer__line { color: var(--soft); font-size: 21px; font-style: italic; }
+.footer__links { display: flex; flex-wrap: wrap; gap: 8px 26px; margin-top: 18px; }
+.footer__small { margin-top: 26px; color: var(--dim); font-size: 15px; }
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 900px) {
+  .menu { grid-template-columns: 1fr; }
+  .menu__intro { position: static; }
+  .board__list { grid-template-columns: 1fr; }
+  .counter__grid,
+  .themes { grid-template-columns: 1fr; }
+  .themes { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1000px) {
+  .lamp { display: none; }
+}
+@media (max-width: 720px) {
+  .menubar__nav,
+  .status__clock { display: none; }
+  .menu__row { flex-wrap: wrap; row-gap: 2px; }
+  .menu__leader { display: none; }
+  .menu__tag { max-width: none; text-align: left; }
+  .steps__item { padding-left: 58px; }
+  .steps__item::before { font-size: 46px; }
+  .command { flex-direction: column; }
+  .command__copy { min-height: 46px; border-top: 1px solid var(--line); border-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .neon { animation: none; }
+  .status__group,
+  .status__chevron,
+  .menubar__link,
+  .button { transition: none; }
+}

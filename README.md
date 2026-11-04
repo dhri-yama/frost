@@ -71,5 +71,8 @@ Ad-hoc signed builds change identity on every build, so macOS forgets the permis
 ## Design
 See `PRODUCT.md`, `docs/design-direction.md` and `docs/plan.md`.
 
+## Website
+The landing page lives in `website/` (Next.js, static export, black theme). See `website/README.md` to run, build and deploy it. It is not part of the app or the DMG.
+
 ## License
 MIT. See `LICENSE`. Credits to the projects Frost builds on are in `CREDITS.md`.
