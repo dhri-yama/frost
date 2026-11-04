@@ -75,6 +75,31 @@ final class ItemsModel: ObservableObject {
         }
     }
 
+    /// Makes the menu bar match a profile: moves each item that is on the wrong side, one at a time. Positions shift
+    /// after every move, so the geometry is read again before each one. Each item is tried once.
+    func apply(_ profile: Profile) {
+        guard !moving else { return }
+        moving = true; moveFailed = false
+        prepareForMove()
+        DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self else { return }
+            var tried = Set<Int>(), failures = 0
+            for _ in 0..<40 {
+                var geo: (Double, Double, Double)?
+                DispatchQueue.main.sync {
+                    if let d = self.dividerMinX(), let t = self.toggleMinX(), let y = self.barY() { geo = (d, t, y) }
+                }
+                guard let (d, t, y) = geo else { failures += 1; break }
+                let others = AccessibilityScan.scan().filter { $0.pid != Int(getpid()) }
+                guard let m = ProfilePlan.moves(items: others, profile: profile, dividerMinX: d).first(where: { !tried.contains($0.id) }) else { break }
+                tried.insert(m.id)
+                if !ItemMover.move(id: m.id, toHidden: m.toHidden, dividerMinX: d, toggleMinX: t, barY: y) { failures += 1 }
+                usleep(400_000)
+            }
+            DispatchQueue.main.async { self.endMove(failures == 0) }
+        }
+    }
+
     private func endMove(_ ok: Bool) {
         finishMove()
         moving = false; moveFailed = !ok

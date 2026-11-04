@@ -2,15 +2,16 @@ import SwiftUI
 import FrostCore
 
 enum Pane: String, CaseIterable {
-    case general, layout, keys, about
+    case general, layout, profiles, keys, about
     var title: String { rawValue.capitalized }
     var symbol: String {
-        switch self { case .general: return "gearshape.fill"; case .layout: return "menubar.rectangle"; case .keys: return "command"; case .about: return "info" }
+        switch self { case .general: return "gearshape.fill"; case .layout: return "menubar.rectangle"; case .profiles: return "square.stack"; case .keys: return "command"; case .about: return "info" }
     }
     var blurb: String {
         switch self {
         case .general: return "Theme, hiding and startup."
         case .layout: return "Which icons are visible and which are tucked away."
+        case .profiles: return "Save a layout and switch back to it in one click."
         case .keys: return "Global shortcuts that work from any app."
         case .about: return "Version and what Frost does with your data."
         }
@@ -20,6 +21,7 @@ enum Pane: String, CaseIterable {
 /// Selected tab. An ObservableObject rather than @State: the Command Line Tools toolchain has no SwiftUI macro plugin.
 final class PaneModel: ObservableObject {
     @Published var pane: Pane
+    @Published var newProfileName = ""
     init(_ pane: Pane = .general) { self.pane = pane }
 }
 
@@ -46,6 +48,7 @@ struct SettingsView: View {
                     switch pane {
                     case .general: general
                     case .layout: layout
+                    case .profiles: profiles
                     case .keys: keys
                     case .about: about
                     }
@@ -70,7 +73,7 @@ struct SettingsView: View {
             ForEach(Pane.allCases, id: \.self) { p in
                 Button { model.pane = p } label: {
                     VStack(spacing: 4) {
-                        Image(systemName: p.symbol).font(.system(size: 18))
+                        Image(systemName: p.symbol).font(.system(size: 18)).frame(height: 24)
                         Text(p.title).font(.system(size: 12, weight: .medium))
                         Capsule().fill(pane == p ? Theme.accent : .clear).frame(width: 22, height: 2)
                     }
@@ -115,6 +118,10 @@ struct SettingsView: View {
                     Sep()
                     MenuRow(title: "Hide items again", subtitle: "How long revealed items stay visible.",
                             selection: $store.autoHide, options: AutoHide.allCases.map { ($0, $0.label) })
+                    Sep()
+                    ToggleRow(title: "Open at login", subtitle: store.loginError ?? "Start Frost when you log in.", isOn: $store.launchAtLogin)
+                    Sep()
+                    ToggleRow(title: "Presenting mode", subtitle: "Keep everything hidden, for screen sharing. ⌃⌥P toggles it.", isOn: $store.presenting)
                     Sep()
                     ToggleRow(title: "Hide items at launch", subtitle: "Start with everything left of the divider hidden.", isOn: $store.hideOnLaunch)
                 }
@@ -180,6 +187,57 @@ struct SettingsView: View {
         }
     }
 
+    private var profiles: some View {
+        VStack(alignment: .leading, spacing: 28) {
+            Block(title: "Saved layouts") {
+                if store.profiles.isEmpty {
+                    Note("No saved layouts yet. Arrange your menu bar, then save it below.")
+                } else {
+                    Card {
+                        ForEach(Array(store.profiles.enumerated()), id: \.element.id) { i, p in
+                            if i > 0 { Sep() }
+                            Row(title: p.name, subtitle: p.hiddenOwners.isEmpty ? "Nothing hidden" : "Hides \(p.hiddenOwners.joined(separator: ", "))") {
+                                HStack(spacing: 8) {
+                                    Button("Apply") { items.apply(p) }.buttonStyle(ControlButton(primary: true))
+                                        .disabled(items.moving || items.source != .accessibility).opacity(items.moving || items.source != .accessibility ? 0.4 : 1)
+                                    Button("Delete") { store.profiles.removeAll { $0.id == p.id } }.buttonStyle(ControlButton())
+                                }
+                            }
+                        }
+                    }
+                    if items.source != .accessibility { Note("Applying a layout needs Accessibility access. Allow it in the Layout tab.") }
+                }
+            }
+            Block(title: "Save current layout") {
+                Row(title: "Name", subtitle: "Saves which apps are hidden right now (\(items.hidden.count)).") {
+                    HStack(spacing: 8) {
+                        nameField
+                            .textFieldStyle(.plain).font(.system(size: 13)).foregroundStyle(Theme.ink)
+                            .padding(.horizontal, 10).frame(width: 150, height: Control.height)
+                            .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
+                            .accessibilityLabel("Layout name")
+                        Button("Save") { saveProfile() }.buttonStyle(ControlButton(primary: true))
+                            .disabled(model.newProfileName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                }
+                Note("Applying a layout drags icons across Frost's divider one at a time. Keep the mouse still until it finishes.")
+            }
+        }
+    }
+
+    /// ImageRenderer cannot draw a TextField, so snapshots show static placeholder text instead.
+    @ViewBuilder private var nameField: some View {
+        if Theme.snapshot { Text("Work").foregroundStyle(Theme.textDim).frame(maxWidth: .infinity, alignment: .leading) }
+        else { TextField("Work", text: $model.newProfileName) }
+    }
+
+    private func saveProfile() {
+        let name = model.newProfileName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+        store.profiles.append(Profile.capturing(name: name, hidden: items.hidden.map(\.item)))
+        model.newProfileName = ""
+    }
+
     private var keys: some View {
         Block(title: "Shortcuts") {
             Card {
@@ -188,6 +246,8 @@ struct SettingsView: View {
                 shortcut("Show or hide items", "⌃⌥H")
                 Sep()
                 shortcut("Search menu bar items", "⌃⌥Space")
+                Sep()
+                shortcut("Presenting mode", "⌃⌥P")
             }
             Note("Search lists every item, hidden or not. Type to filter, ↑ ↓ to choose, Return to click it, Esc to close. Clicking needs Accessibility access.")
         }

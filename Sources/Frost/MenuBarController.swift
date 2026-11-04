@@ -55,6 +55,7 @@ final class MenuBarController: NSObject {
         toggleItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
         toggleItem.button?.setAccessibilityLabel("Frost: show or hide menu bar items")
         store.onAutoHideChange = { [weak self] in self?.scheduleAutoHide() }
+        store.onPresentingChange = { [weak self] in self?.presentingChanged() }
         if !store.hideOnLaunch { state.expand() }
         apply()
     }
@@ -62,6 +63,7 @@ final class MenuBarController: NSObject {
     @objc private func clicked(_ sender: NSStatusBarButton) {
         let e = NSApp.currentEvent
         if e?.type == .rightMouseUp || e?.modifierFlags.contains(.control) == true { showMenu(); return }
+        if store.presenting { return }       // presenting keeps everything hidden
         if store.revealMode == .panel { togglePanel(); return }
         state.toggle()
         apply()
@@ -123,7 +125,7 @@ final class MenuBarController: NSObject {
             b.image = state.collapsed ? nil : NSImage(systemSymbolName: "line.diagonal", accessibilityDescription: "Frost divider")
             b.alphaValue = 0.5
         }
-        let name = state.collapsed ? "chevron.left" : "chevron.right"
+        let name = store.presenting ? "eye.slash" : (state.collapsed ? "chevron.left" : "chevron.right")
         toggleItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: state.collapsed ? "Show hidden items" : "Hide items")
         scheduleAutoHide()
     }
@@ -140,6 +142,7 @@ final class MenuBarController: NSObject {
     private func showMenu() {
         let menu = NSMenu()
         menu.addItem(withTitle: store.revealMode == .panel ? "Show hidden items panel" : (state.collapsed ? "Show hidden items" : "Hide items"), action: #selector(toggleFromMenu), keyEquivalent: "").target = self
+        menu.addItem(withTitle: store.presenting ? "Stop presenting" : "Presenting mode", action: #selector(presentFromMenu), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Search items…", action: #selector(searchFromMenu), keyEquivalent: "").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: "Settings…", action: #selector(settingsFromMenu), keyEquivalent: ",").target = self
@@ -152,7 +155,14 @@ final class MenuBarController: NSObject {
     /// Same as clicking the toggle; used by the global shortcut.
     func toggleFromShortcut() { toggleFromMenu() }
 
-    @objc private func toggleFromMenu() { if store.revealMode == .panel { togglePanel() } else { state.toggle(); apply() } }
+    private func presentingChanged() {
+        if store.presenting { closePanel(); state.collapse() }
+        apply()
+    }
+
+    @objc private func presentFromMenu() { store.presenting.toggle() }
+
+    @objc private func toggleFromMenu() { if store.presenting { return }; if store.revealMode == .panel { togglePanel() } else { state.toggle(); apply() } }
     @objc private func searchFromMenu() { openSearch() }
     @objc private func settingsFromMenu() { openSettings() }
 }

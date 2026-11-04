@@ -22,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         search = SearchController(items: items)
         hotkeys.register(key: kVK_ANSI_H) { [unowned self] in if store.shortcutsEnabled { menuBar.toggleFromShortcut() } }
         hotkeys.register(key: kVK_Space) { [unowned self] in if store.shortcutsEnabled { search.toggle() } }
+        hotkeys.register(key: kVK_ANSI_P) { [unowned self] in if store.shortcutsEnabled { store.presenting.toggle() } }
         menuBar.openSearch = { [unowned self] in search.show() }
         menuBar.openSettings = { [weak self] in self?.showSettings() }
         if CommandLine.arguments.contains("--settings") { showSettings() }

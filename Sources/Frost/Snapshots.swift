@@ -7,7 +7,13 @@ import FrostCore
 enum Snapshots {
     @MainActor static func run(into folder: String) {
         try? FileManager.default.createDirectory(atPath: folder, withIntermediateDirectories: true)
-        let store = SettingsStore()
+        // A throwaway defaults suite, so rendering every theme never changes the user's saved settings.
+        let suite = "local.frost.snapshot"
+        UserDefaults().removePersistentDomain(forName: suite)
+        let store = SettingsStore(defaults: UserDefaults(suiteName: suite)!)
+        defer { UserDefaults().removePersistentDomain(forName: suite) }
+        store.profiles = [Profile(name: "Presenting", hiddenOwners: ["Dropbox", "1Password", "Docker Desktop", "Slack"]),
+                          Profile(name: "Home", hiddenOwners: ["Docker Desktop"])]
         Theme.snapshot = true
         let items = ItemsModel()
         func sample(_ id: Int, _ name: String, _ title: String? = nil) -> ItemRow { ItemRow(item: MenuBarItem(windowID: id, pid: 0, ownerName: name, minX: 0, width: 24, title: title), icon: nil) }

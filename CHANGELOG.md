@@ -6,6 +6,21 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-05
+
+### Added
+- Profiles: save which apps are hidden as a named layout and apply it later. Applying drags each icon that is on the wrong side across the divider, re-reading positions before every move. `Profile` and `ProfilePlan` in `FrostCore`, with tests.
+- Presenting mode: keeps everything hidden until switched off (General, the chevron's right-click menu, or ⌃⌥P). Not saved across launches.
+- Open at login (General), using the system login-item API. If macOS refuses (unsigned builds often do), the switch goes back and says why.
+- Profiles tab; the Keys tab lists the presenting shortcut.
+
+### Fixed
+- `--snapshot` no longer touches saved settings: it renders with a throwaway defaults suite.
+- Tab icons in the settings toolbar are a fixed height, so labels line up.
+
+### Known issues
+- Applying a profile relies on the Hide/Show drag, which has not been confirmed on a real menu bar yet.
+
 ## [0.7.0] - 2026-11-05
 
 ### Added
