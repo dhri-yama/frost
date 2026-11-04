@@ -70,3 +70,6 @@ Ad-hoc signed builds change identity on every build, so macOS forgets the permis
 
 ## Design
 See `PRODUCT.md`, `docs/design-direction.md` and `docs/plan.md`.
+
+## License
+MIT. See `LICENSE`. Credits to the projects Frost builds on are in `CREDITS.md`.
