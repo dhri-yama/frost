@@ -1,8 +1,8 @@
 # Homebrew cask for Frost. Copy to Casks/frost.rb in the tap repository (dhri-yama/homebrew-tap), then update `version` and
 # `sha256` for each release (./publish.sh prints the sha256).
 cask "frost" do
-  version "0.16.0"
-  sha256 "0705425496b0696ed7e9e37545daf038ff87261685d5e21a506ec0fbe119a8b7"
+  version "0.17.0"
+  sha256 "4188f9277ff38f87ff5ebc31e5532b1061d5553b1fef7dfae0b5bea10eaa7e25"
 
   url "https://github.com/dhri-yama/frost/releases/download/v#{version}/Frost-#{version}.dmg"
   name "Frost"
