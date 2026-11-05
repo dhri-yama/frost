@@ -278,7 +278,7 @@ button:focus-visible {
 /* ---------- Behind the counter ---------- */
 
 .counter__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 38px; }
-.themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 30px; }
+.themes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px; }
 .shot img,
 .theme img {
   width: 100%;
@@ -369,7 +369,7 @@ button:focus-visible {
   .board__list { grid-template-columns: 1fr; }
   .counter__grid,
   .themes { grid-template-columns: 1fr; }
-  .themes { grid-template-columns: repeat(3, 1fr); }
+  .themes { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 1000px) {
   .lamp { display: none; }

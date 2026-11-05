@@ -1,9 +1,9 @@
 # Design direction
 
-Frost shares Gazewell's foundation: blurred glass, one accent per theme, and a `Style` value that every view reads. Its default is cold and light rather than warm and green. The app icon follows it: an icy squircle holding a menu-bar pill whose icons fade out before a chevron.
+Frost shares Gazewell's foundation: blurred glass, one accent per theme, and a `Style` value that every view reads. Its look comes from a bar rather than from Gazewell's calm green. The app icon is an icy squircle holding a menu-bar pill whose icons fade out before a chevron (it predates the Day and Night themes). The icon Frost shows in the menu bar is the user's choice of six.
 
 ## Themes
-Frost (default, icy), Midnight (deep blue), Mono (near-black, lime accent), Paper (warm light). A theme is a `Style` in `Theme.swift` (ink, veil, accent, glows, swatch, radii, display font design, material). Views read `Theme`; nothing else hard-codes colour. A new theme is about ten lines of data. Themes style only Frost's own windows, never other apps' icons.
+Two, both taken from a bar, and neither uses neon. **Night** is the bar after dark: black glass, chalk-white text and one warm amber, like a lamp over the counter. **Day** is the same bar in sunlight: warm cream, espresso text and a brass accent, with a serif display face. A theme is a `Style` in `Theme.swift` (ink, veil, accent, glows, swatch, radii, display font design, material). Views read `Theme`; nothing else hard-codes colour. Themes style only Frost's own windows, never other apps' icons. Themes saved by older versions are mapped by `ThemeName.resolve` (Paper becomes Day, everything else Night).
 
 ## Surfaces
 - **Chevron:** Frost's only permanent menu bar item (a divider as well before macOS 27). Click toggles; right-click gives the menu (show or hide, presenting mode, search, settings, quit).

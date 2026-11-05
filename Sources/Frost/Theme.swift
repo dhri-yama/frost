@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import FrostCore
 
 /// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
 struct Style {
@@ -26,45 +27,30 @@ extension Style {
         Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255, opacity: a)
     }
 
-    /// Default. Pale ice, slate glass and one cyan accent.
-    static let frost = Style(
-        name: "Frost", dark: true, ink: hex(0xEAF4FB), veil: hex(0x0B1A26, 0.5),
-        cardOpacity: 0.07, strokeOpacity: 0.12, hairlineOpacity: 0.1, accent: hex(0x7FD8F2),
-        glowA: hex(0x3A86B5, 0.5), glowB: hex(0xBFE9F7, 0.18), swatch: [0x1B3A52, 0x3A86B5],
-        cardRadius: 20, controlRadius: 12, displayDesign: .rounded, material: .hudWindow,
-        onAccent: hex(0x06222E))
+    /// The bar after dark: black glass, chalk-white text, and one warm amber, like a lamp over the counter.
+    static let night = Style(
+        name: "Night", dark: true, ink: hex(0xECE7DF), veil: hex(0x040302, 0.66),
+        cardOpacity: 0.06, strokeOpacity: 0.12, hairlineOpacity: 0.1, accent: hex(0xFFB35C),
+        glowA: hex(0xFFB35C, 0.17), glowB: hex(0xC77A2E, 0.11), swatch: [0x000000, 0x3A2A18],
+        cardRadius: 18, controlRadius: 12, displayDesign: .default, material: .hudWindow,
+        onAccent: hex(0x1A1006))
 
-    /// Deep blue glass with a soft periwinkle accent.
-    static let midnight = Style(
-        name: "Midnight", dark: true, ink: hex(0xEEF1FA), veil: hex(0x050A1C, 0.55),
-        cardOpacity: 0.07, strokeOpacity: 0.12, hairlineOpacity: 0.1, accent: hex(0x9DA9FF),
-        glowA: hex(0x3B4BA8, 0.5), glowB: hex(0x6B5BC4, 0.2), swatch: [0x0F1740, 0x3B4BA8],
-        cardRadius: 22, controlRadius: 14, displayDesign: .default, material: .hudWindow,
-        onAccent: hex(0x0B1033))
-
-    /// Near-monochrome dark blur, one lime accent, tighter corners, serif display.
-    static let mono = Style(
-        name: "Mono", dark: true, ink: hex(0xF2F2EE), veil: hex(0x08090B, 0.5),
-        cardOpacity: 0.05, strokeOpacity: 0.1, hairlineOpacity: 0.09, accent: hex(0xC8F560),
-        glowA: hex(0x39414F, 0.55), glowB: hex(0x20262E, 0.5), swatch: [0x14161A, 0x39414F],
-        cardRadius: 8, controlRadius: 6, displayDesign: .serif, material: .hudWindow,
-        onAccent: hex(0x10130A))
-
-    /// Warm light paper and a clay accent, for people who dislike dark glass.
-    static let paper = Style(
-        name: "Paper", dark: false, ink: hex(0x2A2620), veil: hex(0xF7F1E6, 0.55),
-        cardOpacity: 0.06, strokeOpacity: 0.1, hairlineOpacity: 0.1, accent: hex(0xB5532B),
-        glowA: hex(0xF0D9B5, 0.7), glowB: hex(0xFFFFFF, 0.5), swatch: [0xF3EBDC, 0xE2CFA8],
+    /// The same bar by day: warm cream light, espresso text and a brass accent, like sun on the counter.
+    static let day = Style(
+        name: "Day", dark: false, ink: hex(0x2B2118), veil: hex(0xF6EEE0, 0.62),
+        cardOpacity: 0.06, strokeOpacity: 0.1, hairlineOpacity: 0.11, accent: hex(0x9A5212),
+        glowA: hex(0xFFD9A0, 0.7), glowB: hex(0xFFFFFF, 0.5), swatch: [0xF6EBD6, 0xE3C998],
         cardRadius: 18, controlRadius: 12, displayDesign: .serif, material: .popover,
         onAccent: .white)
 
-    static let all = [frost, midnight, mono, paper]
-    static func named(_ n: String) -> Style { all.first { $0.name == n } ?? frost }
+    static let all = [day, night]
+    /// The theme for a saved name; names from older versions are mapped by `ThemeName.resolve`.
+    static func named(_ n: String) -> Style { all.first { $0.name == ThemeName.resolve(n) } ?? night }
 }
 
 /// Current look. Nothing else hard-codes colour.
 enum Theme {
-    static var style = Style.frost
+    static var style = Style.night
     /// True while rendering PNGs: ImageRenderer cannot draw NSViewRepresentable, ScrollView or Menu.
     static var snapshot = false
 

@@ -30,7 +30,7 @@ enum Snapshots {
                 try? png.write(to: URL(fileURLWithPath: folder).appendingPathComponent("panel-\(style.name.lowercased()).png"))
             }
         }
-        Theme.style = Style.frost
+        Theme.style = Style.night
         for step in OnboardingStep.allCases {
             let view = OnboardingView(items: items, store: store, initialStep: step, moveChevron: { _ in }, openSettings: {}, finish: {})
                 .background(Style.hex(0x10131A))

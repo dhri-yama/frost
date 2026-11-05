@@ -17,7 +17,8 @@ const menu = [
   { name: "Saved layouts", tag: "Work, Home, Presenting", text: "Save which apps are hidden and switch back to it with one click." },
   { name: "Presenting mode", tag: "⌃⌥P", text: "Keeps everything hidden while you share your screen." },
   { name: "Your own shortcuts", tag: "Click and press", text: "Record the keys you want for every action." },
-  { name: "Four themes", tag: "Frost, Midnight, Mono, Paper", text: "Frost's own windows change. Your other apps' icons never do." },
+  { name: "Day and Night", tag: "Two themes", text: "Night is the bar after dark, Day is the same bar in sunlight. Frost's own windows change. Your other apps' icons never do." },
+  { name: "Your own icon", tag: "Six to pick from", text: "Choose what Frost shows in the menu bar: a chevron, dots, a glass, a mug, a snowflake or an eye." },
 ];
 
 // The honest limits. Each is a plain statement, and each matches the app's README.
@@ -96,22 +97,21 @@ export default function Home() {
           <h2 className="section__title" id="counter-title">Behind the counter</h2>
           <div className="counter__grid">
             <figure className="shot shot--tall">
-              <img src={asset("/images/general-frost.jpg")} alt="Frost's General settings in the default Frost theme" loading="lazy" width="1440" height="1200" />
-              <figcaption>Settings, in the default Frost theme.</figcaption>
-            </figure>
-            <figure className="shot">
-              <img src={asset("/images/layout-frost.jpg")} alt="The Layout pane listing hidden and visible apps, each with a Show or Hide button" loading="lazy" width="1440" height="1200" />
+              <img src={asset("/images/layout-night.jpg")} alt="The Layout pane listing hidden and visible apps, each with a Show or Hide button" loading="lazy" width="1440" height="1200" />
               <figcaption>Pick what hides, app by app.</figcaption>
             </figure>
             <figure className="shot">
-              <img src={asset("/images/keys-frost.jpg")} alt="The Keys pane with a recordable shortcut for each action" loading="lazy" width="1440" height="1200" />
+              <img src={asset("/images/profiles-night.jpg")} alt="The Profiles pane with saved layouts you can apply in one click" loading="lazy" width="1440" height="1200" />
+              <figcaption>Save a layout, switch back in one click.</figcaption>
+            </figure>
+            <figure className="shot">
+              <img src={asset("/images/keys-night.jpg")} alt="The Keys pane with a recordable shortcut for each action" loading="lazy" width="1440" height="1200" />
               <figcaption>Your shortcuts, your keys.</figcaption>
             </figure>
           </div>
           <div className="themes">
-            <figure className="theme"><img src={asset("/images/general-midnight.jpg")} alt="The Midnight theme" loading="lazy" width="1440" height="1200" /><figcaption>Midnight</figcaption></figure>
-            <figure className="theme"><img src={asset("/images/general-mono.jpg")} alt="The Mono theme" loading="lazy" width="1440" height="1200" /><figcaption>Mono</figcaption></figure>
-            <figure className="theme"><img src={asset("/images/general-paper.jpg")} alt="The Paper theme" loading="lazy" width="1440" height="1200" /><figcaption>Paper</figcaption></figure>
+            <figure className="theme"><img src={asset("/images/general-night.jpg")} alt="The Night theme, with the menu bar icon choices" loading="lazy" width="1440" height="1200" /><figcaption>Night, the bar after dark.</figcaption></figure>
+            <figure className="theme"><img src={asset("/images/general-day.jpg")} alt="The Day theme, with the menu bar icon choices" loading="lazy" width="1440" height="1200" /><figcaption>Day, the same bar in sunlight.</figcaption></figure>
           </div>
           <p className="counter__note">These are rendered by the app itself with sample data, so the real background blur isn&rsquo;t shown.</p>
         </section>

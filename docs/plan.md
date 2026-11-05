@@ -7,7 +7,7 @@
 4. **Hiding method follows the OS.** The wide-divider trick stopped working on macOS 27, so Frost uses the system allow-list there (a private API, found by the Ellipsis project) and keeps the divider for older versions. See `CREDITS.md`.
 5. Isolate fragile OS code behind small types (`MenuBarRestriction`, `AccessibilityScan`, `ItemMover`) with a visible failure path.
 6. Distributed outside the App Store.
-7. Design: Gazewell's glass and `Style` architecture, icy default, four themes.
+7. Design: Gazewell's glass and `Style` architecture, two themes (Night and Day) taken from a bar, no neon.
 8. Versioning: SemVer in `VERSION`, Keep a Changelog, `release.sh` tags, every step committed.
 9. **No pointer watching.** Hover reveal was built, found to need constant mouse monitoring on macOS 27, and removed. Icons appear on click, shortcut or search.
 

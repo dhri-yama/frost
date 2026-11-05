@@ -153,6 +153,26 @@ struct SettingsView: View {
                 }
                 Note("Applies everywhere in Frost. It never changes the look of other apps' menu bar icons.").padding(.top, 6)
             }
+            Block(title: "Menu bar icon") {
+                HStack(spacing: 12) {
+                    ForEach(MenuBarIcon.allCases, id: \.self) { icon in
+                        Button { store.menuBarIcon = icon } label: {
+                            VStack(spacing: 8) {
+                                Image(systemName: icon.symbol(collapsed: true)).font(.system(size: 20))
+                                    .foregroundStyle(store.menuBarIcon == icon ? Theme.accent : Theme.ink)
+                                    .frame(width: 64, height: 48)
+                                    .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
+                                    .overlay { RoundedRectangle(cornerRadius: Control.radius).stroke(store.menuBarIcon == icon ? Theme.accent : .clear, lineWidth: 2) }
+                                Text(icon.label).font(.system(size: 12, weight: store.menuBarIcon == icon ? .semibold : .regular)).foregroundStyle(Theme.ink)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("\(icon.label) icon")
+                        .accessibilityAddTraits(store.menuBarIcon == icon ? .isSelected : [])
+                    }
+                }
+                Note("The icon Frost shows in the menu bar. Presenting mode always shows the crossed-out eye.").padding(.top, 6)
+            }
             Block(title: "Hiding") {
                 Card {
                     MenuRow(title: "Show hidden items", subtitle: "A panel needs Accessibility access to click the items for you.",

@@ -84,6 +84,7 @@ final class MenuBarController: NSObject {
         store.onAutoHideChange = { [weak self] in self?.scheduleAutoHide() }
         store.onPresentingChange = { [weak self] in self?.presentingChanged() }
         store.onHiddenChange = { [weak self] in self?.reapplyRestriction() }
+        store.onIconChange = { [weak self] in self?.apply() }
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main) { [weak self] _ in
             self?.reapplyRestriction()   // a newly launched app must be added to the allow-list or it would be hidden
         }
@@ -181,8 +182,11 @@ final class MenuBarController: NSObject {
             dividerItem.isVisible = true
             applyDivider()
         }
-        let name = store.presenting ? "eye.slash" : (state.collapsed ? "chevron.left" : "chevron.right")
-        toggleItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: state.collapsed ? "Show hidden items" : "Hide items")
+        // Presenting mode always shows the crossed-out eye; otherwise the chosen icon, falling back to the chevron if the symbol is missing.
+        let name = store.presenting ? "eye.slash" : store.menuBarIcon.symbol(collapsed: state.collapsed)
+        let description = state.collapsed ? "Show hidden items" : "Hide items"
+        toggleItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: description)
+            ?? NSImage(systemSymbolName: state.collapsed ? "chevron.left" : "chevron.right", accessibilityDescription: description)
         scheduleAutoHide()
     }
 

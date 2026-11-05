@@ -7,6 +7,13 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 ## [Unreleased]
 
 ### Added
+- Menu bar icon: Settings → General lets you choose what Frost shows in the menu bar: chevron (default), dots, glass, mug, snowflake or eye. It changes immediately. Presenting mode still shows the crossed-out eye. `MenuBarIcon` in `FrostCore`, with tests.
+
+### Changed
+- Two themes instead of four, both taken from a bar and neither using neon: **Night** (black glass, chalk text, amber lamplight; the default) and **Day** (warm cream, espresso text, brass). Saved themes map over: Paper becomes Day, every other old theme becomes Night (`ThemeName`, with tests).
+- README, product brief, design direction and the website describe the new themes, with new screenshots.
+
+### Added
 - Landing page in `website/` (Next.js, static export): a black, neon-lit bar with a working demo menu bar at the top. It is not part of the app or the DMG, and reads the version from `VERSION`.
 
 ## [0.16.0] - 2026-11-05

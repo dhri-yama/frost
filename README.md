@@ -4,18 +4,16 @@ A macOS menu bar organiser. Frost hides the icons you do not need all the time, 
 
 Open source, no accounts, no telemetry, no network calls. Settings stay on your Mac.
 
-<p align="center"><img src="docs/images/general-frost.jpg" width="640" alt="Frost settings in the default Frost theme"></p>
+<p align="center"><img src="docs/images/general-night.jpg" width="640" alt="Frost settings in the Night theme"></p>
 
 <table>
   <tr>
-    <td align="center"><img src="docs/images/general-midnight.jpg" width="230" alt="Midnight theme"><br>Midnight</td>
-    <td align="center"><img src="docs/images/general-mono.jpg" width="230" alt="Mono theme"><br>Mono</td>
-    <td align="center"><img src="docs/images/general-paper.jpg" width="230" alt="Paper theme"><br>Paper</td>
+    <td align="center"><img src="docs/images/general-day.jpg" width="230" alt="Day theme with the menu bar icon choices"><br>Day</td>
+    <td align="center"><img src="docs/images/layout-night.jpg" width="230" alt="Layout pane"><br>Layout</td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/layout-frost.jpg" width="230" alt="Layout pane"><br>Layout</td>
-    <td align="center"><img src="docs/images/profiles-frost.jpg" width="230" alt="Profiles pane"><br>Profiles</td>
-    <td align="center"><img src="docs/images/keys-frost.jpg" width="230" alt="Keys pane with remappable shortcuts"><br>Keys</td>
+    <td align="center"><img src="docs/images/profiles-night.jpg" width="230" alt="Profiles pane"><br>Profiles</td>
+    <td align="center"><img src="docs/images/keys-night.jpg" width="230" alt="Keys pane with remappable shortcuts"><br>Keys</td>
   </tr>
 </table>
 
@@ -28,7 +26,8 @@ Open source, no accounts, no telemetry, no network calls. Settings stay on your 
 - **Search:** ⌃⌥Space lists every item. Type to filter, ↑ ↓ to choose, Return to click it.
 - **Profiles:** save which apps are hidden as a named layout and apply it later.
 - **Presenting mode:** keep everything hidden for screen sharing (⌃⌥P).
-- **Themes:** Frost, Midnight, Mono and Paper. A theme only styles Frost's own windows, never other apps' icons.
+- **Two themes, both from the bar:** Night (black glass, chalk text, amber lamplight) and Day (warm cream, espresso text, brass). A theme only styles Frost's own windows, never other apps' icons.
+- **Your menu bar icon:** a chevron, dots, a glass, a mug, a snowflake or an eye.
 - Open at login, global shortcuts you can change in Settings → Keys or switch off. Defaults: ⌃⌥H show or hide, ⌃⌥Space search, ⌃⌥P presenting mode.
 
 ## How hiding works

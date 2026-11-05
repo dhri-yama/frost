@@ -24,7 +24,7 @@ Frost: a menu bar organiser. It hides the icons you do not need all the time, sh
 
 ## Brand Commitments
 
-Name: Frost. Open source, transparent about every permission. Same family look as Gazewell (blurred glass, switchable themes), but its own default: icy and cold. Credits to the projects whose findings it builds on are in `CREDITS.md`.
+Name: Frost. Open source, transparent about every permission. Same family look as Gazewell (blurred glass, switchable themes), but its own two themes, both from a bar: Night (black and amber) and Day (cream and brass). Credits to the projects whose findings it builds on are in `CREDITS.md`.
 
 ## Product Principles
 
