@@ -6,6 +6,8 @@ MINOR for new features, PATCH for fixes. While the version is 0.x, minor release
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-05
+
 ### Added
 - Menu bar icon: Settings → General lets you choose what Frost shows in the menu bar: chevron (default), dots, glass, mug, snowflake or eye. It changes immediately. Presenting mode still shows the crossed-out eye. `MenuBarIcon` in `FrostCore`, with tests.
 
